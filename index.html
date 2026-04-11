@@ -179,72 +179,71 @@ function ST(t){['tur','ene','jef','eve','his'].forEach(function(x){document.getE
 function setStatus(type,msg){var el=document.getElementById('status-bar');el.className=type;el.textContent=msg;}
 function enableBtns(on){['bTur','bEne','bJef','bEve'].forEach(function(id){document.getElementById(id).disabled=!on;});}
 
-// ── FETCH USANDO CSV PÚBLICO (más confiable que JSONP) ─────────────────────
-// La URL de exportación CSV funciona cuando la hoja está "Publicada en la web"
+// ── FETCH USANDO GOOGLE VISUALIZATION API (JSON) ──────────────────────────
+// Evita problemas de CORS y de campos CSV con saltos de línea internos
 function fetchCSV(sheetName) {
-  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-            '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(sheetName) +
-            '&t=' + Date.now(); // cache-bust
+  return new Promise(function(resolve, reject) {
+    var cbName = 'gs_cb_' + Math.random().toString(36).slice(2);
+    var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+              '/gviz/tq?tqx=out:json&responseHandler=' + cbName +
+              '&sheet=' + encodeURIComponent(sheetName) +
+              '&t=' + Date.now();
 
-  return fetch(url, {mode:'cors'})
-    .then(function(r){
-      if(!r.ok) throw new Error('HTTP '+r.status+' al cargar hoja "'+sheetName+'"');
-      return r.text();
-    })
-    .then(function(text){
-      return parseCSV(text);
-    });
+    var script = document.createElement('script');
+    var timer = setTimeout(function(){
+      cleanup();
+      reject(new Error('Timeout cargando "' + sheetName + '"'));
+    }, 12000);
+
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = function(raw) {
+      cleanup();
+      try {
+        // raw puede ser objeto directo o string con prefijo google.visualization.Query.setResponse(...)
+        var data = (typeof raw === 'string')
+          ? JSON.parse(raw.replace(/^[^(]+\(/, '').replace(/\);?$/, ''))
+          : raw;
+
+        var table = data.table;
+        if(!table || !table.cols) { resolve([]); return; }
+
+        // Encabezados desde cols[i].label
+        var headers = table.cols.map(function(c){
+          return (c.label || c.id || '').toLowerCase().replace(/\s+/g,'_');
+        });
+
+        var result = (table.rows || []).map(function(row){
+          var obj = {};
+          headers.forEach(function(h, i){
+            var cell = row.c && row.c[i];
+            obj[h] = (cell && cell.v !== null && cell.v !== undefined) ? String(cell.v) : '';
+          });
+          return obj;
+        }).filter(function(o){ return o[headers[0]]; });
+
+        resolve(result);
+      } catch(e) {
+        reject(new Error('Error parseando "' + sheetName + '": ' + e.message));
+      }
+    };
+
+    script.onerror = function(){
+      cleanup();
+      reject(new Error('No se pudo cargar "' + sheetName + '". ¿El sheet es público?'));
+    };
+    script.src = url;
+    document.head.appendChild(script);
+  });
 }
 
-// ── PARSER CSV ROBUSTO ─────────────────────────────────────────────────────
-function parseCSV(text) {
-  // Normalizar saltos de línea: Google Sheets devuelve \r\n
-  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-  // Parsear respetando campos entre comillas que pueden contener comas y saltos de línea
-  var fields = [];
-  var rows = [];
-  var cur = '';
-  var inQ = false;
-
-  for(var i=0;i<text.length;i++){
-    var c = text[i];
-    if(c==='"'){
-      if(inQ && text[i+1]==='"'){ cur+='"'; i++; }
-      else { inQ=!inQ; }
-    } else if(c===',' && !inQ){
-      fields.push(cur);
-      cur='';
-    } else if(c==='\n' && !inQ){
-      fields.push(cur);
-      cur='';
-      rows.push(fields);
-      fields=[];
-    } else {
-      cur+=c;
-    }
-  }
-  // última celda y fila
-  fields.push(cur);
-  if(fields.some(function(f){return f.trim();})) rows.push(fields);
-
-  if(rows.length < 2) return [];
-
-  // Primera fila = encabezados
-  var headers = rows[0].map(function(h){
-    return h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_');
-  });
-
-  var result = [];
-  for(var i=1;i<rows.length;i++){
-    var vals = rows[i];
-    var firstVal = (vals[0]||'').replace(/^"|"$/g,'').trim();
-    if(!firstVal) continue;
-    var obj = {};
-    headers.forEach(function(h,idx){
-      obj[h] = (vals[idx]||'').replace(/^"|"$/g,'').trim();
-    });
-    result.push(obj);
+// ── PLACEHOLDER (ya no se usa, fetchCSV usa JSON) ─────────────────────────
+function parseCSV(text) { return []; }
+function _unused_parseCSV(text) { return []; }
   }
   return result;
 }
@@ -285,13 +284,6 @@ function loadAll(){
 
     enableBtns(true);
     setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
-
-    // DEBUG TEMPORAL
-    if(DB.eventos.length > 0){
-      console.log('CLAVES:', JSON.stringify(Object.keys(DB.eventos[0])));
-      console.log('EVENTO[0]:', JSON.stringify(DB.eventos[0]));
-      console.log('EVENTO[1]:', JSON.stringify(DB.eventos[1]));
-    }
 
     refreshTerrenos();
   }).catch(function(err){
