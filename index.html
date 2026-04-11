@@ -278,6 +278,13 @@ function loadAll(){
 
     enableBtns(true);
     setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
+
+    // DEBUG — ver claves reales del primer evento
+    if(DB.eventos.length > 0){
+      console.log('CLAVES EVENTO:', JSON.stringify(Object.keys(DB.eventos[0])));
+      console.log('PRIMER EVENTO:', JSON.stringify(DB.eventos[0]));
+    }
+
     refreshTerrenos();
   }).catch(function(err){
     setStatus('err','❌ '+err.message+'. Verifica que el Spreadsheet esté publicado (Archivo → Publicar en la web).');
