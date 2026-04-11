@@ -162,7 +162,7 @@ select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;bor
 var SHEET_ID = localStorage.getItem('dnd_sheet_id') || '';
 var DB = {enemigos:[],jefes:[],eventos:[]};
 var hist = [];
-var OBJETOS = ['Poción de Curación Mayor — restaura 3 puntos de vida al héroe que la use','Amuleto de Protección — niega el próximo ataque que recibas sin importar el d10','Botas de Velocidad — el héroe puede actuar dos veces en su próximo turno','Espada Encantada — otorga +3 al próximo dado de ataque','Escudo Rúnico — absorbe hasta 2 puntos de daño del próximo golpe recibido','Grimorio de Poder — el mago lanza su hechizo especial sin contar como acción','Daga del Sigilo — el próximo ataque ignora la habilidad especial del enemigo','Pergamino de Relámpago — elimina automáticamente a un enemigo Fácil sin tirar dados','Capa de Invisibilidad — el héroe no puede ser objetivo de ataques durante 1 ronda','Orbe de Restauración — todos los héroes recuperan 1 punto de vida','Hacha de Tormenta — el próximo ataque exitoso inflige 1 punto de daño adicional','Collar de Resistencia — el héroe reduce en 1 todo el daño recibido durante este combate'];
+var OBJETOS = []; // cargado desde hoja "Objetos" en Google Sheets
 var EVT_CFG = {
   peligro:         {badge:'bd',border:'#f5c0c0',bg:'#fff5f5',bar:'#e09090',label:'Peligro'},
   ventaja_simple:  {badge:'bs',border:'#b8e8bf',bg:'#f5fff7',bar:'#80c890',label:'Ventaja'},
@@ -258,19 +258,26 @@ function loadAll(){
   Promise.all([
     fetchCSV('Enemigos'),
     fetchCSV('Jefes'),
-    fetchCSV('Eventos')
+    fetchCSV('Eventos'),
+    fetchCSV('Objetos')
   ]).then(function(r){
     DB.enemigos = r[0];
     DB.jefes    = r[1];
     DB.eventos  = r[2];
+    var objRows = r[3];
+
+    // Construir array de strings "nombre — descripcion"
+    OBJETOS = objRows.map(function(o){
+      return o.nombre + ' — ' + o.descripcion;
+    }).filter(function(s){ return s.trim() !== ' — '; });
 
     if(!DB.enemigos.length && !DB.jefes.length && !DB.eventos.length){
-      setStatus('err','❌ Se cargaron 0 filas. Verifica que la hoja esté publicada y los nombres de las pestañas sean exactamente: Enemigos, Jefes, Eventos');
+      setStatus('err','❌ Se cargaron 0 filas. Verifica que la hoja esté publicada y los nombres de las pestañas sean exactamente: Enemigos, Jefes, Eventos, Objetos');
       return;
     }
 
     enableBtns(true);
-    setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos cargados');
+    setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
     refreshTerrenos();
   }).catch(function(err){
     setStatus('err','❌ '+err.message+'. Verifica que el Spreadsheet esté publicado (Archivo → Publicar en la web).');
