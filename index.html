@@ -194,17 +194,23 @@ function fetchCSV(sheetName) {
     })
     .then(function(text){
       // Google devuelve: /*O_o*/\ngoogle.visualization.Query.setResponse({...});
-      // Extraemos solo el JSON entre los primeros { y el último }
-      var start = text.indexOf('{');
-      var end   = text.lastIndexOf('}');
-      if(start === -1 || end === -1) throw new Error('Respuesta inesperada de Google Sheets para "' + sheetName + '"');
-      var json = JSON.parse(text.slice(start, end + 1));
+      // Eliminar el wrapper y parsear el JSON limpio
+      var cleaned = text
+        .replace(/^\/\*[\s\S]*?\*\/\s*/, '')   // quitar comentario /*O_o*/
+        .replace(/^[^(]+\(/, '')               // quitar "google...setResponse("
+        .replace(/\);?\s*$/, '')              // quitar ");" del final
+        .trim();
+      var json = JSON.parse(cleaned);
 
       var table = json.table;
       if(!table || !table.cols) return [];
 
       var headers = table.cols.map(function(c){
-        return (c.label || c.id || '').toLowerCase().replace(/\s+/g, '_');
+        return (c.label || c.id || '')
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar tildes
+          .replace(/[^a-z0-9]+/g, '_')                       // solo letras y números
+          .replace(/^_+|_+$/g, '');                          // limpiar extremos
       });
 
       return (table.rows || []).map(function(row){
@@ -258,6 +264,10 @@ function loadAll(){
     enableBtns(true);
     setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
 
+    // DEBUG - mostrar claves reales
+    if(DB.eventos.length > 0){
+      console.log('CLAVES EVENTO:', JSON.stringify(Object.keys(DB.eventos[0])));
+    }
     refreshTerrenos();
   }).catch(function(err){
     setStatus('err','❌ '+err.message+'. Verifica que el Spreadsheet esté publicado (Archivo → Publicar en la web).');
