@@ -94,7 +94,15 @@ select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;bor
   .row{grid-template-columns:1fr;}
   .card-img-wrap,.card-img{width:100%;height:350px;}
   .ev-img-wrap,.ev-img{width:100%;height:250px;}
+  .obj-row{grid-template-columns:1fr;}
 }
+.obj-row{display:grid;grid-template-columns:1fr 200px;gap:12px;align-items:start;padding:12px 14px;background:#fff;border:1.5px solid #b0d0a8;border-radius:10px;margin-bottom:8px;}
+.obj-info{}
+.obj-nombre{font-size:14px;font-weight:700;color:#1e3d1a;margin-bottom:3px;}
+.obj-desc{font-size:13px;color:#5a7a55;line-height:1.5;}
+.obj-input{width:100%;padding:8px 10px;font-size:13px;border:1.5px solid #7aab6a;border-radius:8px;background:#f5faf3;color:#2d4a28;resize:none;}
+.obj-input:focus{outline:none;border-color:#2d5a27;}
+.obj-input::placeholder{color:#a8c8a0;}
 </style>
 </head>
 <body>
@@ -122,6 +130,7 @@ select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;bor
   <button class="tab" id="t-jef" onclick="ST('jef')">Jefes</button>
   <button class="tab" id="t-eve" onclick="ST('eve')">Eventos</button>
   <button class="tab" id="t-his" onclick="ST('his')">Historial</button>
+  <button class="tab" id="t-obj" onclick="ST('obj')">🎒 Objetos</button>
 </div>
 <div class="pnl on" id="p-tur">
   <div><label>Terreno</label><select id="tur-ter"><option>Pueblo de Neverwinter</option><option>Bosque de Neverwinter</option><option>Gauntlgrym</option><option>Monte Hotenow</option></select></div>
@@ -156,11 +165,19 @@ select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;bor
   </div>
   <div id="hl"><p style="font-size:14px;color:#5a7a55;padding:1rem 0;">Aún no has generado contenido.</p></div>
 </div>
+
+<div class="pnl" id="p-obj">
+  <div style="margin-bottom:12px;">
+    <h2 style="font-size:18px;font-weight:700;color:#1e3d1a;margin-bottom:4px;">🎒 Objetos Mágicos</h2>
+    <p style="font-size:13px;color:#5a7a55;">Registra quién obtuvo cada objeto durante la partida.</p>
+  </div>
+  <div id="obj-lista"><p style="font-size:14px;color:#5a7a55;padding:1rem 0;">Cargando objetos...</p></div>
+</div>
 </div>
 
 <script>
 var SHEET_ID = localStorage.getItem('dnd_sheet_id') || '';
-var DB = {enemigos:[],jefes:[],eventos:[]};
+var DB = {enemigos:[],jefes:[],eventos:[],objetos:[]};
 var hist = [];
 var OBJETOS = []; // cargado desde hoja "Objetos" en Google Sheets
 var EVT_CFG = {
@@ -175,7 +192,7 @@ var EVT_CFG = {
 function R(a){return a[Math.floor(Math.random()*a.length)];}
 function RN(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function GV(id){return document.getElementById(id).value;}
-function ST(t){['tur','ene','jef','eve','his'].forEach(function(x){document.getElementById('t-'+x).classList.remove('on');document.getElementById('p-'+x).classList.remove('on');});document.getElementById('t-'+t).classList.add('on');document.getElementById('p-'+t).classList.add('on');}
+function ST(t){['tur','ene','jef','eve','his','obj'].forEach(function(x){document.getElementById('t-'+x).classList.remove('on');document.getElementById('p-'+x).classList.remove('on');});document.getElementById('t-'+t).classList.add('on');document.getElementById('p-'+t).classList.add('on');}
 function setStatus(type,msg){var el=document.getElementById('status-bar');el.className=type;el.textContent=msg;}
 function enableBtns(on){['bTur','bEne','bJef','bEve'].forEach(function(id){document.getElementById(id).disabled=!on;});}
 
@@ -256,6 +273,10 @@ function loadAll(){
       return o.nombre + ' — ' + o.descripcion;
     }).filter(function(s){ return s.trim() !== ' — '; });
 
+    // Guardar objetos completos para la pestaña
+    DB.objetos = objRows.filter(function(o){ return o.nombre && o.nombre.trim(); });
+    renderObjetos();
+
     if(!DB.enemigos.length && !DB.jefes.length && !DB.eventos.length){
       setStatus('err','❌ Se cargaron 0 filas. Verifica que la hoja esté publicada y los nombres de las pestañas sean exactamente: Enemigos, Jefes, Eventos, Objetos');
       return;
@@ -264,15 +285,6 @@ function loadAll(){
     enableBtns(true);
     setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
 
-    // DEBUG
-    if(DB.eventos.length > 0){
-      console.log('CLAVES:', JSON.stringify(Object.keys(DB.eventos[0])));
-      // Buscar un evento de tipo peligro para ver su imagen_url
-      var evP = DB.eventos.filter(function(e){return e.mecanica_tipo==='peligro';})[0];
-      var evN = DB.eventos.filter(function(e){return e.mecanica_tipo==='narrativo';})[0];
-      if(evP) console.log('PELIGRO imagen_url:', JSON.stringify(evP.imagen_url));
-      if(evN) console.log('NARRATIVO imagen_url:', JSON.stringify(evN.imagen_url));
-    }
     refreshTerrenos();
   }).catch(function(err){
     setStatus('err','❌ '+err.message+'. Verifica que el Spreadsheet esté publicado (Archivo → Publicar en la web).');
@@ -435,6 +447,23 @@ function gEve(){
   renderEv(ev,c,true,true);
   hist.unshift({tp:'Evento',nm:ev.nombre,tb:'eve'});RH();
 }
+function renderObjetos(){
+  var el = document.getElementById('obj-lista');
+  if(!DB.objetos || !DB.objetos.length){
+    el.innerHTML = '<p style="font-size:14px;color:#5a7a55;padding:1rem 0;">No hay objetos cargados.</p>';
+    return;
+  }
+  el.innerHTML = DB.objetos.map(function(o, i){
+    return '<div class="obj-row">' +
+      '<div class="obj-info">' +
+        '<div class="obj-nombre">✨ ' + o.nombre + '</div>' +
+        '<div class="obj-desc">' + o.descripcion + '</div>' +
+      '</div>' +
+      '<textarea class="obj-input" rows="2" placeholder="¿Quién lo obtuvo?" id="obj_' + i + '"></textarea>' +
+    '</div>';
+  }).join('');
+}
+
 function RH(){
   var el=document.getElementById('hl');
   if(!hist.length){el.innerHTML='<p style="font-size:14px;color:#5a7a55;padding:1rem 0;">Aún no has generado contenido.</p>';return;}
