@@ -179,66 +179,43 @@ function ST(t){['tur','ene','jef','eve','his'].forEach(function(x){document.getE
 function setStatus(type,msg){var el=document.getElementById('status-bar');el.className=type;el.textContent=msg;}
 function enableBtns(on){['bTur','bEne','bJef','bEve'].forEach(function(id){document.getElementById(id).disabled=!on;});}
 
-// ── FETCH USANDO GOOGLE VISUALIZATION API (JSON) ──────────────────────────
-// Evita problemas de CORS y de campos CSV con saltos de línea internos
+// ── FETCH USANDO GOOGLE VISUALIZATION API (fetch + JSON) ──────────────────
+// gviz/tq con out:json devuelve texto con prefijo que hay que limpiar
+// No necesita JSONP — fetch funciona porque el sheet es público (Anyone with link)
 function fetchCSV(sheetName) {
-  return new Promise(function(resolve, reject) {
-    var cbName = 'gs_cb_' + Math.random().toString(36).slice(2);
-    var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-              '/gviz/tq?tqx=out:json&responseHandler=' + cbName +
-              '&sheet=' + encodeURIComponent(sheetName) +
-              '&t=' + Date.now();
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+            '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(sheetName) +
+            '&t=' + Date.now();
 
-    var script = document.createElement('script');
-    var timer = setTimeout(function(){
-      cleanup();
-      reject(new Error('Timeout cargando "' + sheetName + '"'));
-    }, 12000);
+  return fetch(url)
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status + ' cargando "' + sheetName + '"');
+      return r.text();
+    })
+    .then(function(text){
+      // Google devuelve: /*O_o*/\ngoogle.visualization.Query.setResponse({...});
+      // Extraemos solo el JSON entre los primeros { y el último }
+      var start = text.indexOf('{');
+      var end   = text.lastIndexOf('}');
+      if(start === -1 || end === -1) throw new Error('Respuesta inesperada de Google Sheets para "' + sheetName + '"');
+      var json = JSON.parse(text.slice(start, end + 1));
 
-    function cleanup(){
-      clearTimeout(timer);
-      delete window[cbName];
-      if(script.parentNode) script.parentNode.removeChild(script);
-    }
+      var table = json.table;
+      if(!table || !table.cols) return [];
 
-    window[cbName] = function(raw) {
-      cleanup();
-      try {
-        // raw puede ser objeto directo o string con prefijo google.visualization.Query.setResponse(...)
-        var data = (typeof raw === 'string')
-          ? JSON.parse(raw.replace(/^[^(]+\(/, '').replace(/\);?$/, ''))
-          : raw;
+      var headers = table.cols.map(function(c){
+        return (c.label || c.id || '').toLowerCase().replace(/\s+/g, '_');
+      });
 
-        var table = data.table;
-        if(!table || !table.cols) { resolve([]); return; }
-
-        // Encabezados desde cols[i].label
-        var headers = table.cols.map(function(c){
-          return (c.label || c.id || '').toLowerCase().replace(/\s+/g,'_');
+      return (table.rows || []).map(function(row){
+        var obj = {};
+        headers.forEach(function(h, i){
+          var cell = row.c && row.c[i];
+          obj[h] = (cell && cell.v !== null && cell.v !== undefined) ? String(cell.v) : '';
         });
-
-        var result = (table.rows || []).map(function(row){
-          var obj = {};
-          headers.forEach(function(h, i){
-            var cell = row.c && row.c[i];
-            obj[h] = (cell && cell.v !== null && cell.v !== undefined) ? String(cell.v) : '';
-          });
-          return obj;
-        }).filter(function(o){ return o[headers[0]]; });
-
-        resolve(result);
-      } catch(e) {
-        reject(new Error('Error parseando "' + sheetName + '": ' + e.message));
-      }
-    };
-
-    script.onerror = function(){
-      cleanup();
-      reject(new Error('No se pudo cargar "' + sheetName + '". ¿El sheet es público?'));
-    };
-    script.src = url;
-    document.head.appendChild(script);
-  });
+        return obj;
+      }).filter(function(o){ return o[headers[0]]; });
+    });
 }
 
 // ── PLACEHOLDER (ya no se usa, fetchCSV usa JSON) ─────────────────────────
