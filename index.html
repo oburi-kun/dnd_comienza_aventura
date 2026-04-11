@@ -286,6 +286,13 @@ function loadAll(){
     enableBtns(true);
     setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
 
+    // DEBUG TEMPORAL
+    if(DB.eventos.length > 0){
+      console.log('CLAVES:', JSON.stringify(Object.keys(DB.eventos[0])));
+      console.log('EVENTO[0]:', JSON.stringify(DB.eventos[0]));
+      console.log('EVENTO[1]:', JSON.stringify(DB.eventos[1]));
+    }
+
     refreshTerrenos();
   }).catch(function(err){
     setStatus('err','❌ '+err.message+'. Verifica que el Spreadsheet esté publicado (Archivo → Publicar en la web).');
