@@ -264,9 +264,14 @@ function loadAll(){
     enableBtns(true);
     setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
 
-    // DEBUG - mostrar claves reales
+    // DEBUG
     if(DB.eventos.length > 0){
-      console.log('CLAVES EVENTO:', JSON.stringify(Object.keys(DB.eventos[0])));
+      console.log('CLAVES:', JSON.stringify(Object.keys(DB.eventos[0])));
+      // Buscar un evento de tipo peligro para ver su imagen_url
+      var evP = DB.eventos.filter(function(e){return e.mecanica_tipo==='peligro';})[0];
+      var evN = DB.eventos.filter(function(e){return e.mecanica_tipo==='narrativo';})[0];
+      if(evP) console.log('PELIGRO imagen_url:', JSON.stringify(evP.imagen_url));
+      if(evN) console.log('NARRATIVO imagen_url:', JSON.stringify(evN.imagen_url));
     }
     refreshTerrenos();
   }).catch(function(err){
