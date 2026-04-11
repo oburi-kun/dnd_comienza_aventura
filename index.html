@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D&D: Comienza la Aventura — v2.0</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:sans-serif;background:#f0f5ee;}
+#app{max-width:700px;margin:0 auto;padding:1.5rem 1rem;}
+.hdr{text-align:center;margin-bottom:1.5rem;background:#2d5a27;border-radius:12px;padding:1.25rem 1rem;}
+.hdr h1{font-size:22px;font-weight:700;color:#f5e9c0;letter-spacing:.02em;margin-bottom:4px;}
+.hdr p{font-size:12px;color:#a8c8a0;font-style:italic;}
+#status-bar{text-align:center;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:1rem;display:none;}
+#status-bar.loading{display:block;background:#fff8e0;color:#7a5c00;border:1px solid #f0d060;}
+#status-bar.ok{display:block;background:#f0f7ee;color:#2d5a27;border:1px solid #7aab6a;}
+#status-bar.err{display:block;background:#fff3f3;color:#900;border:1px solid #f5c0c0;}
+.config-panel{background:#e8f0e5;border:1.5px solid #7aab6a;border-radius:10px;padding:1rem;margin-bottom:1rem;}
+.config-panel h3{font-size:13px;font-weight:700;color:#2d5a27;margin-bottom:8px;}
+.config-panel input{width:100%;padding:7px 10px;font-size:13px;border:1.5px solid #7aab6a;border-radius:6px;background:#f5faf3;color:#2d4a28;font-family:monospace;}
+.config-btns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.btn-cfg{padding:7px 16px;font-size:12px;font-weight:700;border:none;border-radius:6px;cursor:pointer;}
+.btn-cfg.primary{background:linear-gradient(135deg,#c9a227,#e8c040);color:#3d2800;}
+.btn-cfg.secondary{background:#d4e8ce;color:#2d5a27;border:1px solid #7aab6a;}
+.config-hint{font-size:11px;color:#5a7a55;margin-top:8px;line-height:1.6;}
+.tabs{display:flex;border-bottom:2px solid #4a7c3f;margin-bottom:1.25rem;overflow-x:auto;background:#e8f0e5;border-radius:8px 8px 0 0;}
+.tab{padding:9px 13px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#4a6645;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;font-weight:500;}
+.tab.on{color:#2d5a27;border-bottom:3px solid #2d5a27;font-weight:700;background:#d4e8ce;}
+.tab:hover:not(.on){background:#deecd8;color:#2d5a27;}
+.pnl{display:none;}.pnl.on{display:block;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+label{font-size:12px;color:#3d5c38;font-weight:600;display:block;margin-bottom:4px;}
+select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;border-radius:8px;background:#f5faf3;color:#2d4a28;}
+.btn{width:100%;padding:12px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#c9a227,#e8c040);color:#3d2800;border:none;border-radius:8px;cursor:pointer;margin-top:8px;box-shadow:0 2px 6px rgba(180,140,0,.25);}
+.btn:hover{background:linear-gradient(135deg,#d4ad2c,#f0cc48);}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.card{display:none;margin-top:1.25rem;border:1.5px solid #7aab6a;border-radius:12px;overflow:hidden;background:#fff;}
+.card.on{display:block;}
+.card-img-wrap{width:500px;height:800px;overflow:hidden;background:#d4e8ce;margin:0 auto;display:block;}
+.card-img{width:500px;height:800px;object-fit:cover;object-position:center center;display:block;}
+.card-body{padding:1.25rem;}
+.card h2{font-size:17px;font-weight:700;margin-bottom:4px;color:#1e3d1a;}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;font-weight:700;display:inline-block;margin-left:4px;}
+.bd{background:#fde;color:#900;}.bw{background:#ffd;color:#760;}.bi{background:#def;color:#059;}.bs{background:#dfd;color:#155a10;}.bm{background:#fff3cd;color:#856404;}
+.sec{font-size:11px;font-weight:700;color:#4a7c3f;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 5px;}
+.ct{font-size:14px;line-height:1.7;color:#222;}
+.cm{font-size:14px;line-height:1.7;color:#555;font-style:italic;}
+.stats2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.sb{background:#e8f0e5;border-radius:8px;padding:10px;text-align:center;border:1px solid #b0d0a8;}
+.sl{font-size:11px;color:#4a6645;display:block;margin-bottom:2px;}
+.sv{font-size:22px;font-weight:700;color:#1e3d1a;}
+.div{border:none;border-top:1px solid #c8ddc4;margin:12px 0;}
+.hi{background:#e8f0e5;border-radius:8px;padding:10px 14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border:1px solid #b0d0a8;}
+.hi:hover{background:#d4e8ce;}
+.hn{font-weight:700;font-size:14px;color:#1e3d1a;}.ht{font-size:11px;color:#5a7a55;}
+.atkt{width:100%;border-collapse:collapse;margin-top:6px;font-size:14px;}
+.atkt th{background:#d4e8ce;padding:6px 10px;text-align:left;font-weight:700;font-size:12px;border:1px solid #b0d0a8;color:#2d5a27;}
+.atkt td{padding:7px 10px;border:1px solid #ddeedd;vertical-align:top;}
+.atkt tr.fl td{color:#bbb;font-style:italic;}
+.atkt tr.md td{background:#fffbf0;}
+.atkt tr.hx td{background:#fff0f0;}
+.atkt tr.jh td{background:#f5f0ff;}
+.rpill{font-weight:700;font-size:13px;white-space:nowrap;}
+.dico{display:inline-block;background:#2d5a27;color:#f5e9c0;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:6px;}
+.hab{background:#fff3f0;border:1.5px solid #f5c0c0;border-radius:8px;padding:12px 14px;font-size:14px;line-height:1.65;margin-top:4px;}
+.hab-label{font-size:11px;font-weight:700;color:#b00;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.turno-card{display:none;margin-top:1.25rem;border:2px solid #c9a227;border-radius:12px;overflow:hidden;background:#fff;}
+.turno-card.on{display:block;}
+.turno-header{background:linear-gradient(135deg,#2d5a27,#3d7a32);padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.turno-header h3{font-size:15px;font-weight:700;color:#f5e9c0;margin:0;}
+.turno-tipo-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#c9a227;color:#3d2800;}
+.ev-card{border-radius:12px;overflow:hidden;margin-top:1.25rem;display:none;border:1.5px solid #7aab6a;}
+.ev-card.on{display:block;}
+.ev-img-wrap{width:1000px;height:700px;overflow:hidden;background:#d4e8ce;margin:0 auto;display:block;position:relative;}
+.ev-img{width:1000px;height:700px;object-fit:cover;object-position:center center;display:block;}
+.ev-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.6));pointer-events:none;}
+.ev-body{padding:1.25rem;background:#fff;}
+.ev-terreno{font-size:12px;color:#5a7a55;margin-bottom:14px;}
+.ev-narr{font-size:14px;line-height:1.8;color:#333;margin-bottom:14px;padding:12px 14px;background:#f0f7ee;border-left:3px solid #4a7c3f;border-radius:0 6px 6px 0;}
+.mec-block{border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+.mec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.mec-text{font-size:14px;line-height:1.65;}
+.mec-result{font-size:13px;line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(0,0,0,.12);}
+.mec-peligro{background:#fff3f3;border:1px solid #f5c0c0;}.mec-peligro .mec-label{color:#b00;}
+.mec-ventaja{background:#f3fff5;border:1px solid #b8e8bf;}.mec-ventaja .mec-label{color:#155a10;}
+.mec-moneda-pos{background:#fffbea;border:1px solid #f0d060;}.mec-moneda-pos .mec-label{color:#7a5c00;}
+.mec-moneda-neg{background:#fff3f3;border:1px solid #f5c0c0;}.mec-moneda-neg .mec-label{color:#900;}
+.mec-decision{background:#f8f0ff;border:1px solid #d0b0f0;}.mec-decision .mec-label{color:#60c;}
+.mec-dado{background:#f0f5ea;border:1px solid #b0d0a8;}.mec-dado .mec-label{color:#2d5a27;}
+.coin{display:inline-block;background:#c8a820;color:#fff;font-weight:700;font-size:12px;padding:2px 9px;border-radius:99px;margin-left:4px;}
+.d20pill{display:inline-block;background:#2d5a27;color:#f5e9c0;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin:0 3px;}
+@media(max-width:500px){
+  .row{grid-template-columns:1fr;}
+  .card-img-wrap,.card-img{width:100%;height:350px;}
+  .ev-img-wrap,.ev-img{width:100%;height:250px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="hdr">
+  <h1>⚔️ D&amp;D: Comienza la Aventura</h1>
+  <p>Un generador de contenido diseñado por Pablo Lopez — v2.0</p>
+</div>
+<div id="status-bar"></div>
+<div class="config-panel" id="cfg">
+  <h3>⚙️ Conectar Google Spreadsheet</h3>
+  <input type="text" id="sheet-id" placeholder="Pega el ID de tu Google Spreadsheet aquí">
+  <div class="config-btns">
+    <button class="btn-cfg primary" onclick="saveAndLoad()">💾 Guardar y cargar datos</button>
+    <button class="btn-cfg secondary" onclick="document.getElementById('cfg').style.display='none'">Ocultar</button>
+  </div>
+  <p class="config-hint">
+    El ID está en la URL: docs.google.com/spreadsheets/d/<strong>ESTE_ES_EL_ID</strong>/edit<br>
+    ⚠️ La hoja debe estar publicada: <strong>Archivo → Publicar en la web → Publicar</strong>
+  </p>
+</div>
+<div class="tabs">
+  <button class="tab on" id="t-tur" onclick="ST('tur')">Turno de Acción</button>
+  <button class="tab" id="t-ene" onclick="ST('ene')">Enemigos</button>
+  <button class="tab" id="t-jef" onclick="ST('jef')">Jefes</button>
+  <button class="tab" id="t-eve" onclick="ST('eve')">Eventos</button>
+  <button class="tab" id="t-his" onclick="ST('his')">Historial</button>
+</div>
+<div class="pnl on" id="p-tur">
+  <div><label>Terreno</label><select id="tur-ter"><option>Pueblo de Neverwinter</option><option>Bosque de Neverwinter</option><option>Gauntlgrym</option><option>Monte Hotenow</option></select></div>
+  <button class="btn" id="bTur" disabled>⚡ Nuevo Turno de Acción</button>
+  <div class="turno-card" id="c-tur"></div>
+</div>
+<div class="pnl" id="p-ene">
+  <div class="row">
+    <div><label>Terreno</label><select id="e-ter"><option value="">Cualquiera</option><option>Pueblo de Neverwinter</option><option>Bosque de Neverwinter</option><option>Gauntlgrym</option><option>Monte Hotenow</option></select></div>
+    <div><label>Dificultad</label><select id="e-dif"><option value="">Cualquiera</option><option>Fácil</option><option>Medio</option><option>Difícil</option></select></div>
+  </div>
+  <button class="btn" id="bEne" disabled>🎲 Generar enemigo</button>
+  <div class="card" id="c-ene"></div>
+</div>
+<div class="pnl" id="p-jef">
+  <div><label>Terreno</label><select id="j-ter"><option value="">Cualquiera</option><option>Pueblo de Neverwinter</option><option>Bosque de Neverwinter</option><option>Gauntlgrym</option><option>Monte Hotenow</option></select></div>
+  <button class="btn" id="bJef" disabled>🎲 Generar jefe final</button>
+  <div class="card" id="c-jef"></div>
+</div>
+<div class="pnl" id="p-eve">
+  <div class="row">
+    <div><label>Terreno</label><select id="v-ter"><option>Pueblo de Neverwinter</option><option>Bosque de Neverwinter</option><option>Gauntlgrym</option><option>Monte Hotenow</option></select></div>
+    <div><label>Tipo</label><select id="v-tip"><option value="">Aleatorio</option><option value="peligro">Peligro</option><option value="ventaja_simple">Ventaja simple</option><option value="ventaja_decision">Ventaja con decisión</option><option value="narrativo">Narrativo</option><option value="moneda_pos">Moneda ganancia</option><option value="moneda_neg">Moneda pérdida</option></select></div>
+  </div>
+  <button class="btn" id="bEve" disabled>🎲 Revelar evento</button>
+  <div class="ev-card" id="c-eve"></div>
+</div>
+<div class="pnl" id="p-his">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <span style="font-size:14px;color:#4a6645;font-weight:600;">Generado en esta sesión</span>
+    <button onclick="hist=[];RH();" style="font-size:12px;background:#e8f0e5;border:1px solid #7aab6a;border-radius:6px;padding:4px 10px;cursor:pointer;color:#2d5a27;font-weight:600;">Limpiar</button>
+  </div>
+  <div id="hl"><p style="font-size:14px;color:#5a7a55;padding:1rem 0;">Aún no has generado contenido.</p></div>
+</div>
+</div>
+
+<script>
+var SHEET_ID = localStorage.getItem('dnd_sheet_id') || '';
+var DB = {enemigos:[],jefes:[],eventos:[]};
+var hist = [];
+var OBJETOS = ['Poción de Curación Mayor — restaura 3 puntos de vida al héroe que la use','Amuleto de Protección — niega el próximo ataque que recibas sin importar el d10','Botas de Velocidad — el héroe puede actuar dos veces en su próximo turno','Espada Encantada — otorga +3 al próximo dado de ataque','Escudo Rúnico — absorbe hasta 2 puntos de daño del próximo golpe recibido','Grimorio de Poder — el mago lanza su hechizo especial sin contar como acción','Daga del Sigilo — el próximo ataque ignora la habilidad especial del enemigo','Pergamino de Relámpago — elimina automáticamente a un enemigo Fácil sin tirar dados','Capa de Invisibilidad — el héroe no puede ser objetivo de ataques durante 1 ronda','Orbe de Restauración — todos los héroes recuperan 1 punto de vida','Hacha de Tormenta — el próximo ataque exitoso inflige 1 punto de daño adicional','Collar de Resistencia — el héroe reduce en 1 todo el daño recibido durante este combate'];
+var EVT_CFG = {
+  peligro:         {badge:'bd',border:'#f5c0c0',bg:'#fff5f5',bar:'#e09090',label:'Peligro'},
+  ventaja_simple:  {badge:'bs',border:'#b8e8bf',bg:'#f5fff7',bar:'#80c890',label:'Ventaja'},
+  ventaja_decision:{badge:'bs',border:'#b8e8bf',bg:'#f5fff7',bar:'#80c890',label:'Ventaja'},
+  narrativo:       {badge:'bi',border:'#b8cef0',bg:'#f5f8ff',bar:'#80a8e0',label:'Narrativo'},
+  moneda_pos:      {badge:'bm',border:'#f0d060',bg:'#fffbea',bar:'#c8a820',label:'Monedas'},
+  moneda_neg:      {badge:'bm',border:'#f0d060',bg:'#fffbea',bar:'#c8a820',label:'Monedas'}
+};
+
+function R(a){return a[Math.floor(Math.random()*a.length)];}
+function RN(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function GV(id){return document.getElementById(id).value;}
+function ST(t){['tur','ene','jef','eve','his'].forEach(function(x){document.getElementById('t-'+x).classList.remove('on');document.getElementById('p-'+x).classList.remove('on');});document.getElementById('t-'+t).classList.add('on');document.getElementById('p-'+t).classList.add('on');}
+function setStatus(type,msg){var el=document.getElementById('status-bar');el.className=type;el.textContent=msg;}
+function enableBtns(on){['bTur','bEne','bJef','bEve'].forEach(function(id){document.getElementById(id).disabled=!on;});}
+
+// ── FETCH USANDO CSV PÚBLICO (más confiable que JSONP) ─────────────────────
+// La URL de exportación CSV funciona cuando la hoja está "Publicada en la web"
+function fetchCSV(sheetName) {
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+            '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(sheetName) +
+            '&t=' + Date.now(); // cache-bust
+
+  return fetch(url, {mode:'cors'})
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status+' al cargar hoja "'+sheetName+'"');
+      return r.text();
+    })
+    .then(function(text){
+      return parseCSV(text);
+    });
+}
+
+// ── PARSER CSV ROBUSTO ─────────────────────────────────────────────────────
+function parseCSV(text) {
+  var lines = text.split('\n');
+  if(lines.length < 2) return [];
+
+  function parseLine(line) {
+    var fields = [];
+    var cur = '';
+    var inQ = false;
+    for(var i=0;i<line.length;i++){
+      var c = line[i];
+      if(c==='"'){
+        if(inQ && line[i+1]==='"'){cur+='"';i++;}
+        else {inQ=!inQ;}
+      } else if(c===',' && !inQ){
+        fields.push(cur.trim());
+        cur='';
+      } else {
+        cur+=c;
+      }
+    }
+    fields.push(cur.trim());
+    return fields;
+  }
+
+  var headers = parseLine(lines[0]).map(function(h){
+    return h.replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_');
+  });
+
+  var result = [];
+  for(var i=1;i<lines.length;i++){
+    var line = lines[i].trim();
+    if(!line) continue;
+    var vals = parseLine(line);
+    // Si la primera columna está vacía, saltar
+    var firstVal = (vals[0]||'').replace(/^"|"$/g,'').trim();
+    if(!firstVal) continue;
+    var obj = {};
+    headers.forEach(function(h,idx){
+      obj[h] = (vals[idx]||'').replace(/^"|"$/g,'').trim();
+    });
+    result.push(obj);
+  }
+  return result;
+}
+
+function saveAndLoad(){
+  var id = document.getElementById('sheet-id').value.trim();
+  if(!id){setStatus('err','⚠️ Ingresa el ID del Spreadsheet');return;}
+  SHEET_ID = id;
+  localStorage.setItem('dnd_sheet_id', id);
+  loadAll();
+}
+
+function loadAll(){
+  if(!SHEET_ID){setStatus('err','⚠️ Configura el ID del Spreadsheet');return;}
+  setStatus('loading','⏳ Cargando datos desde Google Sheets...');
+  enableBtns(false);
+
+  Promise.all([
+    fetchCSV('Enemigos'),
+    fetchCSV('Jefes'),
+    fetchCSV('Eventos')
+  ]).then(function(r){
+    DB.enemigos = r[0];
+    DB.jefes    = r[1];
+    DB.eventos  = r[2];
+
+    if(!DB.enemigos.length && !DB.jefes.length && !DB.eventos.length){
+      setStatus('err','❌ Se cargaron 0 filas. Verifica que la hoja esté publicada y los nombres de las pestañas sean exactamente: Enemigos, Jefes, Eventos');
+      return;
+    }
+
+    enableBtns(true);
+    setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos cargados');
+    refreshTerrenos();
+  }).catch(function(err){
+    setStatus('err','❌ '+err.message+'. Verifica que el Spreadsheet esté publicado (Archivo → Publicar en la web).');
+  });
+}
+
+function refreshTerrenos(){
+  var terrenos=[];
+  DB.enemigos.forEach(function(e){if(e.terreno&&terrenos.indexOf(e.terreno)<0)terrenos.push(e.terreno);});
+  if(!terrenos.length) return;
+  ['tur-ter','v-ter'].forEach(function(id){
+    var sel=document.getElementById(id);
+    sel.innerHTML='';
+    terrenos.forEach(function(t){sel.add(new Option(t,t));});
+  });
+  ['e-ter','j-ter'].forEach(function(id){
+    var sel=document.getElementById(id);
+    sel.innerHTML='<option value="">Cualquiera</option>';
+    terrenos.forEach(function(t){sel.add(new Option(t,t));});
+  });
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function cardImg(url,alt){
+  if(!url) return '';
+  return '<div class="card-img-wrap"><img class="card-img" src="'+url+'" alt="'+alt+'" onerror="this.parentElement.style.display=\'none\'"></div>';
+}
+function evImg(url,alt){
+  if(!url) return '';
+  return '<div class="ev-img-wrap"><img class="ev-img" src="'+url+'" alt="'+alt+'" onerror="this.parentElement.style.display=\'none\'"><div class="ev-img-overlay"></div></div>';
+}
+function RA(row,esJefe){
+  var atks=[];
+  if(row.ataque_falla) atks.push({r:row.ataque_falla,e:'Falla',cls:'fl'});
+  if(row.rango_medio&&row.efecto_medio) atks.push({r:row.rango_medio,e:row.efecto_medio,cls:'md'});
+  if(row.rango_alto&&row.efecto_alto)   atks.push({r:row.rango_alto, e:row.efecto_alto, cls:esJefe?'jh':'hx'});
+  var h='<table class="atkt"><thead><tr><th><span class="dico">d10</span>Resultado</th><th>Ataque / Efecto</th></tr></thead><tbody>';
+  atks.forEach(function(a){h+='<tr class="'+a.cls+'"><td><span class="rpill">'+a.r+'</span></td><td>'+a.e+'</td></tr>';});
+  return h+'</tbody></table>';
+}
+function renderEne(e,c){
+  var bc=e.dificultad==='Difícil'?'bd':e.dificultad==='Medio'?'bw':'bs';
+  c.className='card on';
+  c.innerHTML=cardImg(e.imagen_url,e.nombre)+
+    '<div class="card-body"><h2>'+e.nombre+' <span class="badge '+bc+'">'+e.dificultad+'</span></h2>'+
+    '<p style="font-size:12px;color:#5a7a55;margin-bottom:6px">'+e.terreno+'</p>'+
+    '<p class="cm" style="margin-bottom:12px">"'+e.frase+'"</p>'+
+    '<div class="stats2"><div class="sb"><span class="sl">Puntos de vida</span><span class="sv">'+e.vida+'</span></div>'+
+    '<div class="sb"><span class="sl">Dificultad</span><span class="sv" style="font-size:15px;padding-top:3px">'+e.dificultad+'</span></div></div>'+
+    '<div class="sec"><span class="dico">d10</span>Tabla de ataques</div>'+RA(e,false)+'</div>';
+}
+function renderJef(j,c){
+  var vMin=parseInt(j.vida_min)||8, vMax=parseInt(j.vida_max)||10;
+  var vida=RN(vMin,vMax);
+  c.className='card on';
+  c.innerHTML=cardImg(j.imagen_url,j.nombre)+
+    '<div class="card-body"><h2>'+j.nombre+' <span class="badge bd">Jefe Final</span></h2>'+
+    '<p style="font-size:12px;color:#5a7a55;margin-bottom:6px">'+j.terreno+'</p>'+
+    '<p class="cm" style="margin-bottom:12px">"'+j.frase+'"</p>'+
+    '<div class="stats2"><div class="sb"><span class="sl">Puntos de vida</span><span class="sv">'+vida+'</span></div>'+
+    '<div class="sb"><span class="sl">Categoría</span><span class="sv" style="font-size:15px;padding-top:3px">Jefe</span></div></div>'+
+    '<div class="sec"><span class="dico">d10</span>Tabla de ataques</div>'+RA(j,true)+
+    '<div class="sec">Habilidad especial</div>'+
+    '<div class="hab"><div class="hab-label">⚡ Efecto permanente durante el combate</div>'+j.habilidad_especial+'</div></div>';
+}
+function mecBlock(ev){
+  var tipo=ev.mecanica_tipo||'peligro';
+  var obj=R(OBJETOS);
+  if(tipo==='peligro'){
+    return '<div class="mec-block mec-peligro"><div class="mec-label">⚠ Efecto en juego</div><div class="mec-text">'+ev.efecto_texto+'</div><div class="mec-result" style="color:#888">Duración: '+ev.duracion+'</div></div>';
+  }else if(tipo==='ventaja_simple'){
+    return '<div class="mec-block mec-ventaja"><div class="mec-label">✓ Efecto en juego</div><div class="mec-text">'+ev.efecto_texto+'</div><div class="mec-result" style="color:#888">Duración: '+ev.duracion+'</div></div>';
+  }else if(tipo==='ventaja_decision'){
+    var tieneObj=(ev.si_objeto||'').toUpperCase()==='TRUE';
+    return '<div class="mec-block mec-decision"><div class="mec-label">⚖ Decisión del grupo</div><div class="mec-text">'+ev.pregunta_decision+'</div></div>'+
+      '<div class="mec-block mec-ventaja"><div class="mec-label">✓ Si ayudáis</div><div class="mec-text">'+ev.si_texto+'</div>'+
+      (tieneObj?'<div class="mec-result"><strong>🃏 Objeto obtenido:</strong> '+obj+'</div>':'')+
+      '</div><div class="mec-block mec-dado"><div class="mec-label" style="color:#555">✗ Si no ayudáis</div><div class="mec-text" style="color:#666">'+ev.no_texto+'</div></div>';
+  }else if(tipo==='narrativo'){
+    var u=ev.dado_umbral||'12';
+    return '<div class="mec-block mec-dado"><div class="mec-label">🎲 '+ev.dado_instruccion+' — tira el <span class="d20pill">d20</span></div>'+
+      '<div class="mec-result"><strong style="color:#155a10">✓ '+u+'+ en el dado:</strong> '+ev.dado_exito+'</div>'+
+      '<div class="mec-result"><strong style="color:#900">✗ Menos de '+u+':</strong> '+ev.dado_fallo+'</div></div>'+
+      '<div style="font-size:12px;color:#aaa;margin-top:6px">Duración si se logra: '+ev.duracion+'</div>';
+  }else if(tipo==='moneda_pos'){
+    return '<div class="mec-block mec-moneda-pos"><div class="mec-label">🪙 Ganancia</div><div class="mec-text">'+ev.efecto_texto+'</div><div class="mec-result" style="color:#888">Duración: '+ev.duracion+'</div></div>';
+  }else if(tipo==='moneda_neg'){
+    return '<div class="mec-block mec-moneda-neg"><div class="mec-label">🪙 Pérdida</div><div class="mec-text">'+ev.efecto_texto+'</div><div class="mec-result" style="color:#888">Duración: '+ev.duracion+'</div></div>';
+  }
+  return '';
+}
+function renderEv(ev,container,border,bg){
+  var tipo=ev.mecanica_tipo||'peligro';
+  var cfg=EVT_CFG[tipo]||EVT_CFG['peligro'];
+  container.innerHTML=evImg(ev.imagen_url,ev.nombre)+
+    '<div class="ev-body"><h2 style="font-size:16px;font-weight:700;margin-bottom:4px;color:#1e3d1a;">'+ev.nombre+' <span class="badge '+cfg.badge+'">'+cfg.label+'</span></h2>'+
+    '<p class="ev-terreno">'+ev.terreno+'</p>'+
+    '<div class="ev-narr" style="border-left-color:'+cfg.bar+'">'+ev.narrativa+'</div>'+
+    mecBlock(ev)+'</div>';
+  if(border){container.style.border='1.5px solid '+cfg.border;}
+  if(bg){container.style.background=cfg.bg;}
+}
+
+// ── GENERADORES ─────────────────────────────────────────────────────────────
+function gTurno(){
+  var ter=GV('tur-ter');
+  var c=document.getElementById('c-tur');
+  c.className='turno-card on';
+  if(Math.random()<0.6){
+    var pool=DB.enemigos.filter(function(e){return e.terreno===ter;});
+    if(!pool.length) pool=DB.enemigos;
+    var e=R(pool);
+    var bc=e.dificultad==='Difícil'?'bd':e.dificultad==='Medio'?'bw':'bs';
+    c.innerHTML='<div class="turno-header"><h3>⚔️ ¡Aparece un enemigo!</h3><span class="turno-tipo-badge">'+e.dificultad+'</span></div>'+
+      cardImg(e.imagen_url,e.nombre)+
+      '<div class="card-body"><h2>'+e.nombre+' <span class="badge '+bc+'">'+e.dificultad+'</span></h2>'+
+      '<p style="font-size:12px;color:#5a7a55;margin-bottom:6px">'+e.terreno+'</p>'+
+      '<p class="cm" style="margin-bottom:12px">"'+e.frase+'"</p>'+
+      '<div class="stats2"><div class="sb"><span class="sl">Puntos de vida</span><span class="sv">'+e.vida+'</span></div>'+
+      '<div class="sb"><span class="sl">Dificultad</span><span class="sv" style="font-size:15px;padding-top:3px">'+e.dificultad+'</span></div></div>'+
+      '<div class="sec"><span class="dico">d10</span>Tabla de ataques</div>'+RA(e,false)+'</div>';
+    hist.unshift({tp:'Turno · Enemigo',nm:e.nombre,tb:'tur'});
+  }else{
+    var pool=DB.eventos.filter(function(ev){return ev.terreno===ter;});
+    if(!pool.length) pool=DB.eventos;
+    var ev=R(pool);
+    var cfg=EVT_CFG[ev.mecanica_tipo||'peligro']||EVT_CFG['peligro'];
+    var inner=document.createElement('div');
+    renderEv(ev,inner,false,false);
+    c.innerHTML='<div class="turno-header"><h3>🎴 ¡Evento!</h3><span class="turno-tipo-badge">'+cfg.label+'</span></div>';
+    c.appendChild(inner);
+    hist.unshift({tp:'Turno · Evento',nm:ev.nombre,tb:'tur'});
+  }
+  RH();
+}
+function gEne(){
+  var ter=GV('e-ter'),dif=GV('e-dif');
+  var pool=DB.enemigos.filter(function(e){return(!ter||e.terreno===ter)&&(!dif||e.dificultad===dif);});
+  if(!pool.length){alert('Sin resultados con ese filtro.');return;}
+  var e=R(pool);
+  renderEne(e,document.getElementById('c-ene'));
+  hist.unshift({tp:'Enemigo',nm:e.nombre,tb:'ene'});RH();
+}
+function gJef(){
+  var ter=GV('j-ter');
+  var pool=ter?DB.jefes.filter(function(j){return j.terreno===ter;}):DB.jefes;
+  if(!pool.length) pool=DB.jefes;
+  var j=R(pool);
+  renderJef(j,document.getElementById('c-jef'));
+  hist.unshift({tp:'Jefe Final',nm:j.nombre,tb:'jef'});RH();
+}
+function gEve(){
+  var ter=GV('v-ter'),tip=GV('v-tip');
+  var pool=DB.eventos.filter(function(ev){return ev.terreno===ter&&(!tip||ev.mecanica_tipo===tip);});
+  if(!pool.length) pool=DB.eventos.filter(function(ev){return ev.terreno===ter;});
+  if(!pool.length) pool=DB.eventos;
+  var ev=R(pool);
+  var c=document.getElementById('c-eve');
+  c.className='ev-card on';
+  renderEv(ev,c,true,true);
+  hist.unshift({tp:'Evento',nm:ev.nombre,tb:'eve'});RH();
+}
+function RH(){
+  var el=document.getElementById('hl');
+  if(!hist.length){el.innerHTML='<p style="font-size:14px;color:#5a7a55;padding:1rem 0;">Aún no has generado contenido.</p>';return;}
+  el.innerHTML=hist.map(function(h){return '<div class="hi" onclick="ST(\''+h.tb+'\')"><div><div class="hn">'+h.nm+'</div><div class="ht">'+h.tp+'</div></div><span style="font-size:18px;color:#4a7c3f">›</span></div>';}).join('');
+}
+
+document.getElementById('bTur').addEventListener('click',gTurno);
+document.getElementById('bEne').addEventListener('click',gEne);
+document.getElementById('bJef').addEventListener('click',gJef);
+document.getElementById('bEve').addEventListener('click',gEve);
+
+window.addEventListener('load',function(){
+  var saved=localStorage.getItem('dnd_sheet_id');
+  if(saved){
+    document.getElementById('sheet-id').value=saved;
+    SHEET_ID=saved;
+    loadAll();
+  }else{
+    setStatus('err','⚠️ Ingresa el ID de tu Google Spreadsheet para comenzar');
+  }
+});
+</script>
+</body>
+</html>
