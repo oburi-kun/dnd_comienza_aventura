@@ -184,7 +184,7 @@ function enableBtns(on){['bTur','bEne','bJef','bEve'].forEach(function(id){docum
 // No necesita JSONP — fetch funciona porque el sheet es público (Anyone with link)
 function fetchCSV(sheetName) {
   var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-            '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(sheetName) +
+            '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(sheetName) +
             '&t=' + Date.now();
 
   return fetch(url)
