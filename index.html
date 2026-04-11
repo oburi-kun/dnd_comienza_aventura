@@ -198,39 +198,46 @@ function fetchCSV(sheetName) {
 
 // ── PARSER CSV ROBUSTO ─────────────────────────────────────────────────────
 function parseCSV(text) {
-  var lines = text.split('\n');
-  if(lines.length < 2) return [];
+  // Normalizar saltos de línea: Google Sheets devuelve \r\n
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-  function parseLine(line) {
-    var fields = [];
-    var cur = '';
-    var inQ = false;
-    for(var i=0;i<line.length;i++){
-      var c = line[i];
-      if(c==='"'){
-        if(inQ && line[i+1]==='"'){cur+='"';i++;}
-        else {inQ=!inQ;}
-      } else if(c===',' && !inQ){
-        fields.push(cur.trim());
-        cur='';
-      } else {
-        cur+=c;
-      }
+  // Parsear respetando campos entre comillas que pueden contener comas y saltos de línea
+  var fields = [];
+  var rows = [];
+  var cur = '';
+  var inQ = false;
+
+  for(var i=0;i<text.length;i++){
+    var c = text[i];
+    if(c==='"'){
+      if(inQ && text[i+1]==='"'){ cur+='"'; i++; }
+      else { inQ=!inQ; }
+    } else if(c===',' && !inQ){
+      fields.push(cur);
+      cur='';
+    } else if(c==='\n' && !inQ){
+      fields.push(cur);
+      cur='';
+      rows.push(fields);
+      fields=[];
+    } else {
+      cur+=c;
     }
-    fields.push(cur.trim());
-    return fields;
   }
+  // última celda y fila
+  fields.push(cur);
+  if(fields.some(function(f){return f.trim();})) rows.push(fields);
 
-  var headers = parseLine(lines[0]).map(function(h){
-    return h.replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_');
+  if(rows.length < 2) return [];
+
+  // Primera fila = encabezados
+  var headers = rows[0].map(function(h){
+    return h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_');
   });
 
   var result = [];
-  for(var i=1;i<lines.length;i++){
-    var line = lines[i].trim();
-    if(!line) continue;
-    var vals = parseLine(line);
-    // Si la primera columna está vacía, saltar
+  for(var i=1;i<rows.length;i++){
+    var vals = rows[i];
     var firstVal = (vals[0]||'').replace(/^"|"$/g,'').trim();
     if(!firstVal) continue;
     var obj = {};
@@ -278,12 +285,6 @@ function loadAll(){
 
     enableBtns(true);
     setStatus('ok','✅ '+DB.enemigos.length+' enemigos · '+DB.jefes.length+' jefes · '+DB.eventos.length+' eventos · '+OBJETOS.length+' objetos cargados');
-
-    // DEBUG — ver claves reales del primer evento
-    if(DB.eventos.length > 0){
-      console.log('CLAVES EVENTO:', JSON.stringify(Object.keys(DB.eventos[0])));
-      console.log('PRIMER EVENTO:', JSON.stringify(DB.eventos[0]));
-    }
 
     refreshTerrenos();
   }).catch(function(err){
