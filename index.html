@@ -418,10 +418,13 @@ function mecBlock(ev){
     return '<div class="mec-block mec-ventaja"><div class="mec-label">✓ Efecto en juego</div><div class="mec-text">'+ev.efecto_texto+'</div><div class="mec-result" style="color:#888">Duración: '+ev.duracion+'</div></div>';
   }else if(tipo==='ventaja_decision'){
     var tieneObj=(ev.si_objeto||'').toUpperCase()==='TRUE';
+    var recompensa = tieneObj
+      ? '<div class="mec-result"><strong>🃏 Objeto obtenido:</strong> '+obj+'</div>'
+      : '<div class="mec-result"><strong>🪙 Recompensa:</strong> <span class="coin">+1 moneda</span></div>';
     return '<div class="mec-block mec-decision"><div class="mec-label">⚖ Decisión del grupo</div><div class="mec-text">'+ev.pregunta_decision+'</div></div>'+
-      '<div class="mec-block mec-ventaja"><div class="mec-label">✓ Si ayudáis</div><div class="mec-text">'+ev.si_texto+'</div>'+
-      (tieneObj?'<div class="mec-result"><strong>🃏 Objeto obtenido:</strong> '+obj+'</div>':'')+
-      '</div><div class="mec-block mec-dado"><div class="mec-label" style="color:#555">✗ Si no ayudáis</div><div class="mec-text" style="color:#666">'+ev.no_texto+'</div></div>';
+      '<div class="mec-block mec-ventaja"><div class="mec-label">✓ Si aceptáis</div><div class="mec-text">'+ev.si_texto+'</div>'+
+      recompensa+
+      '</div><div class="mec-block mec-dado"><div class="mec-label" style="color:#555">✗ Si no aceptáis</div><div class="mec-text" style="color:#666">'+ev.no_texto+'</div></div>';
   }else if(tipo==='narrativo'){
     var u=ev.dado_umbral||'12';
     return '<div class="mec-block mec-dado"><div class="mec-label">🎲 '+ev.dado_instruccion+' — tira el <span class="d20pill">d20</span></div>'+
