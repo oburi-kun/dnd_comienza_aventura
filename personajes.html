@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D&D: Comienza la Aventura — Personajes</title>
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:    #c9a227;
+  --gold-lt: #f0d060;
+  --gold-dk: #7a5c00;
+  --parch:   #f5ecd4;
+  --parch-dk:#e8d5a8;
+  --ink:     #1a1208;
+  --green:   #2d5a27;
+  --green-lt:#4a7c3f;
+  --red:     #8b1a1a;
+  --stone:   #3d3020;
+  --shadow:  rgba(0,0,0,0.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Crimson Text', Georgia, serif;
+  background: var(--stone);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(90,60,10,.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(20,40,10,.5) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23231a0a'/%3E%3Crect x='0' y='0' width='1' height='1' fill='%2332240e' opacity='.6'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%2332240e' opacity='.4'/%3E%3C/svg%3E");
+  min-height: 100vh;
+  color: var(--ink);
+}
+
+/* ── HEADER ── */
+.page-header {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+  position: relative;
+}
+.page-header h1 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(18px, 4vw, 32px);
+  font-weight: 900;
+  color: var(--gold-lt);
+  text-shadow: 0 0 20px rgba(201,162,39,.5), 2px 2px 0 var(--ink);
+  letter-spacing: .12em;
+  margin-bottom: 4px;
+}
+.page-header p {
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: .06em;
+}
+.divider {
+  width: 200px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 12px auto;
+}
+
+/* ── TABS DE PERSONAJE ── */
+.char-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 1rem 1rem;
+  flex-wrap: wrap;
+}
+.char-tab {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: 1.5px solid var(--gold-dk);
+  border-radius: 6px 6px 0 0;
+  background: rgba(0,0,0,.4);
+  color: var(--gold);
+  cursor: pointer;
+  letter-spacing: .08em;
+  transition: all .2s;
+  position: relative;
+}
+.char-tab:hover { background: rgba(201,162,39,.15); }
+.char-tab.active {
+  background: var(--parch);
+  color: var(--ink);
+  border-color: var(--gold);
+  border-bottom-color: var(--parch);
+}
+.char-tab .raza-icon { margin-right: 5px; }
+
+/* ── PANEL DE PERSONAJE ── */
+.char-panel { display: none; padding: 0 1rem 2rem; }
+.char-panel.active { display: block; }
+
+.char-card {
+  max-width: 780px;
+  margin: 0 auto;
+  background: var(--parch);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  border: 3px solid var(--gold);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px var(--shadow), inset 0 0 60px rgba(201,162,39,.06);
+  overflow: hidden;
+}
+
+/* ── HEADER DE CARTA ── */
+.card-header {
+  background: linear-gradient(135deg, var(--green) 0%, #1a3a15 60%, #0d2209 100%);
+  padding: 18px 20px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+  border-bottom: 3px solid var(--gold);
+  position: relative;
+  overflow: hidden;
+}
+.card-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 5 L55 30 L30 55 L5 30 Z' fill='none' stroke='rgba(201,162,39,.08)' stroke-width='1'/%3E%3Ccircle cx='30' cy='30' r='20' fill='none' stroke='rgba(201,162,39,.05)' stroke-width='1'/%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+}
+.char-name-block { position: relative; }
+.char-name {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 900;
+  color: var(--gold-lt);
+  text-shadow: 1px 1px 0 var(--ink), 0 0 15px rgba(201,162,39,.4);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.char-sub {
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  color: rgba(240,208,96,.8);
+  font-size: 14px;
+  letter-spacing: .05em;
+}
+.char-attrs {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.attr-pill {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border: 1px solid rgba(201,162,39,.5);
+  border-radius: 99px;
+  color: var(--gold);
+  background: rgba(0,0,0,.3);
+  letter-spacing: .06em;
+}
+
+/* ── TRACKER DE VIDA ── */
+.vida-section {
+  background: rgba(0,0,0,.25);
+  border: 1px solid rgba(201,162,39,.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  text-align: center;
+  min-width: 120px;
+  position: relative;
+}
+.vida-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.vida-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.vida-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: transform .1s, box-shadow .1s;
+}
+.vida-btn:active { transform: scale(.9); }
+.vida-btn.plus { border-color: #4a9a3f; background: rgba(74,154,63,.2); color: #7fcc70; }
+.vida-btn.plus:hover { background: rgba(74,154,63,.35); box-shadow: 0 0 8px rgba(74,154,63,.4); }
+.vida-btn.minus { border-color: #9a3f3f; background: rgba(154,63,63,.2); color: #cc7070; }
+.vida-btn.minus:hover { background: rgba(154,63,63,.35); box-shadow: 0 0 8px rgba(154,63,63,.4); }
+.vida-num {
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--gold-lt);
+  line-height: 1;
+  min-width: 36px;
+  text-align: center;
+}
+.vida-num.danger { color: #e05050; text-shadow: 0 0 10px rgba(224,80,80,.5); }
+.vida-num.dead { color: #666; }
+.vida-max-label {
+  font-size: 11px;
+  color: rgba(201,162,39,.6);
+  margin-top: 3px;
+}
+.vida-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.heart { font-size: 11px; transition: all .2s; }
+.heart.empty { opacity: .2; filter: grayscale(1); }
+
+/* ── CUERPO DE LA CARTA ── */
+.card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+@media(max-width: 560px) { .card-body { grid-template-columns: 1fr; } }
+
+.card-section {
+  padding: 16px 18px;
+  border-right: 1px solid rgba(201,162,39,.25);
+  border-bottom: 1px solid rgba(201,162,39,.15);
+}
+.card-section:last-child { border-right: none; }
+.card-section.full { grid-column: 1 / -1; border-right: none; }
+
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(45,90,39,.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-title::before {
+  content: '';
+  width: 12px;
+  height: 2px;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+
+/* ── TABLA DE ATAQUES ── */
+.atk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.atk-table tr { border-bottom: 1px solid rgba(201,162,39,.15); }
+.atk-table tr:last-child { border-bottom: none; }
+.atk-table td { padding: 5px 4px; vertical-align: middle; }
+.atk-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  display: inline-block;
+}
+.atk-badge.d20 { background: var(--green); color: var(--gold-lt); }
+.atk-badge.fail { background: #ddd; color: #888; }
+.atk-badge.hit { background: #fff3cc; color: var(--gold-dk); border: 1px solid var(--gold); }
+.atk-badge.crit { background: #ffd0d0; color: var(--red); border: 1px solid #e08080; }
+.atk-dmg {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  text-align: center;
+  white-space: nowrap;
+}
+.atk-fx { font-style: italic; color: #555; font-size: 12px; }
+.atk-name {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 6px;
+  letter-spacing: .04em;
+}
+
+/* ── PODER ESPECIAL ── */
+.poder-box {
+  background: linear-gradient(135deg, rgba(45,90,39,.08), rgba(45,90,39,.03));
+  border: 1.5px solid rgba(45,90,39,.3);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.poder-nombre {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+.poder-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+  font-style: italic;
+}
+
+/* ── HABILIDAD ÚNICA ── */
+.hab-box {
+  background: linear-gradient(135deg, rgba(201,162,39,.1), rgba(201,162,39,.04));
+  border: 1.5px solid rgba(201,162,39,.4);
+  border-radius: 8px;
+  padding: 12px 14px;
+  position: relative;
+}
+.hab-nombre {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold-dk);
+  margin-bottom: 4px;
+}
+.hab-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+}
+.hab-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: var(--gold);
+  color: var(--ink);
+  border-radius: 99px;
+  letter-spacing: .05em;
+}
+.hab-usado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.hab-toggle {
+  width: 36px;
+  height: 20px;
+  background: #ccc;
+  border-radius: 99px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background .2s;
+  flex-shrink: 0;
+}
+.hab-toggle::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left .2s;
+}
+.hab-toggle.usado { background: #e08080; }
+.hab-toggle.usado::after { left: 19px; }
+.hab-label { font-size: 12px; color: #666; font-style: italic; }
+.hab-label.usado { color: var(--red); font-weight: 600; }
+
+/* ── INVENTARIO ── */
+.inv-list { list-style: none; margin-bottom: 10px; }
+.inv-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px dashed rgba(201,162,39,.2);
+  font-size: 13px;
+  border-radius: 6px;
+  transition: background .15s, opacity .15s;
+}
+.inv-item:last-child { border-bottom: none; }
+.inv-item.usado { background: rgba(0,0,0,.05); opacity: .6; }
+.inv-item.usado .inv-nombre { text-decoration: line-through; color: #999; }
+.inv-nombre { flex: 1; color: var(--ink); }
+.inv-usado-btn {
+  font-size: 10px;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1.5px solid;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  flex-shrink: 0;
+  letter-spacing: .03em;
+}
+.inv-usado-btn.disponible { border-color: var(--green); background: rgba(45,90,39,.1); color: var(--green); }
+.inv-usado-btn.disponible:hover { background: rgba(45,90,39,.22); }
+.inv-usado-btn.gastado { border-color: #bbb; background: rgba(0,0,0,.04); color: #aaa; }
+.inv-usado-btn.gastado:hover { border-color: var(--red); background: rgba(139,26,26,.08); color: var(--red); }
+.inv-remove { background: none; border: none; color: #ccc; cursor: pointer; font-size: 13px; padding: 0 2px; line-height: 1; flex-shrink: 0; }
+.inv-remove:hover { color: var(--red); }
+.inv-add {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.inv-input {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: 'Crimson Text', serif;
+  border: 1.5px solid rgba(201,162,39,.4);
+  border-radius: 6px;
+  background: rgba(255,255,255,.7);
+  color: var(--ink);
+}
+.inv-input:focus { outline: none; border-color: var(--gold); }
+.inv-input::placeholder { color: #aaa; font-style: italic; }
+.inv-btn {
+  padding: 6px 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+  color: var(--ink);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: .04em;
+}
+.inv-btn:hover { filter: brightness(1.1); }
+.inv-empty { font-size: 13px; color: #aaa; font-style: italic; }
+
+/* ── MONEDAS ── */
+.monedas-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(201,162,39,.2);
+}
+.monedas-label {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold-dk);
+  letter-spacing: .05em;
+}
+.moneda-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .1s;
+}
+.moneda-btn:active { transform: scale(.9); }
+.moneda-btn.plus { border-color: var(--gold); background: rgba(201,162,39,.15); color: var(--gold-dk); }
+.moneda-btn.minus { border-color: #aaa; background: rgba(0,0,0,.05); color: #888; }
+.moneda-num {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--gold);
+  min-width: 24px;
+  text-align: center;
+}
+.nivel-row {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(201,162,39,.12), rgba(201,162,39,.04));
+  border: 1.5px solid rgba(201,162,39,.5);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.nivel-label { font-family:'Cinzel',serif; font-size:11px; font-weight:700; color:var(--gold-dk); letter-spacing:.07em; }
+.nivel-num { font-family:'Cinzel',serif; font-size:22px; font-weight:900; color:var(--gold); min-width:32px; text-align:center; }
+.nivel-btn {
+  width:28px; height:28px; border-radius:50%; border:1.5px solid var(--gold);
+  background:rgba(201,162,39,.15); color:var(--gold-dk);
+  font-size:16px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .1s, background .15s;
+}
+.nivel-btn:hover { background:rgba(201,162,39,.3); }
+.nivel-btn:active { transform:scale(.9); }
+.nivel-bonus { font-size:11px; color:var(--green); font-family:'Cinzel',serif; font-weight:600; letter-spacing:.04em; margin-left:auto; }
+.moneda-icon { font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>⚔ Fichas de Personaje</h1>
+  <div class="divider"></div>
+  <p>D&amp;D: Comienza la Aventura</p>
+</div>
+
+<!-- Config panel -->
+<div id="cfg-panel" style="max-width:600px;margin:0 auto 1rem;padding:0 1rem;">
+  <div style="background:rgba(0,0,0,.3);border:1.5px solid var(--gold-dk);border-radius:10px;padding:1rem;">
+    <div style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;">⚙ Conectar Google Spreadsheet</div>
+    <div style="display:flex;gap:8px;">
+      <input id="cfg-sheet-id" type="text" placeholder="ID del Spreadsheet..."
+        style="flex:1;padding:7px 10px;font-size:13px;border:1.5px solid var(--gold-dk);border-radius:6px;background:rgba(255,255,255,.1);color:var(--gold-lt);font-family:monospace;">
+      <button onclick="saveConfig()"
+        style="padding:7px 14px;font-family:'Cinzel',serif;font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold-lt));color:var(--ink);border:none;border-radius:6px;cursor:pointer;">
+        Cargar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Status -->
+<div id="status-bar" style="display:none;max-width:600px;margin:0 auto .75rem;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;"></div>
+
+<style>
+.status-loading { background:#fff8e0; color:#7a5c00; border:1px solid #f0d060; }
+.status-ok      { background:#f0f7ee; color:#2d5a27; border:1px solid #7aab6a; }
+.status-err     { background:#fff3f3; color:#8b1a1a; border:1px solid #f5c0c0; }
+</style>
+
+<div class="char-tabs" id="tabs"></div>
+<div id="panels"></div>
+
+<script>
+// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────
+// Usa el mismo Sheet ID que la app principal
+var SHEET_ID = localStorage.getItem('dnd_sheet_id') || '';
+var SHEET_PERSONAJES = 'Personajes';
+
+// ── ESTADO ────────────────────────────────────────────────────────────────
+// rawData[id] = array de filas ordenadas por nivel: [{nivel:1,...},{nivel:2,...}]
+var rawData = {};
+// estado por personaje (vida, items, etc.)
+var estado = {};
+// IDs en orden de aparición
+var charIds = [];
+
+// ── FETCH GOOGLE SHEETS (mismo método que app principal) ──────────────────
+function fetchSheet(sheetName) {
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+            '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(sheetName) +
+            '&t=' + Date.now();
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function(text) {
+      var cleaned = text
+        .replace(/^\/\*[\s\S]*?\*\/\s*/, '')
+        .replace(/^[^(]+\(/, '')
+        .replace(/\);?\s*$/, '')
+        .trim();
+      var json = JSON.parse(cleaned);
+      var table = json.table;
+      if (!table || !table.cols) return [];
+      var headers = table.cols.map(function(c) {
+        return (c.label || c.id || '').toLowerCase().replace(/\s+/g, '_');
+      });
+      return (table.rows || []).map(function(row) {
+        var obj = {};
+        headers.forEach(function(h, i) {
+          var cell = row.c && row.c[i];
+          obj[h] = (cell && cell.v !== null && cell.v !== undefined) ? String(cell.v) : '';
+        });
+        return obj;
+      }).filter(function(o) { return o[headers[0]]; });
+    });
+}
+
+// ── PARSEAR FILA EN ESTRUCTURA DE PERSONAJE ───────────────────────────────
+function parseFila(row) {
+  return {
+    id:     row.id,
+    nombre: row.nombre,
+    raza:   row.raza,
+    clase:  row.clase,
+    icon:   row.icon,
+    nivel:  parseInt(row.nivel) || 1,
+    vidaMax: parseInt(row.vida_max) || 10,
+    atributos: (row.atributos || '').split(',').map(function(s) { return s.trim(); }),
+    ataques: [
+      {
+        nombre: row.atk1_nombre,
+        tipo:   row.atk1_tipo,
+        special: false,
+        filas: [
+          { rango: row.atk1_falla,      dmg: '—',             cls: 'fail', fx: 'Falla' },
+          { rango: row.atk1_hit_rango,  dmg: row.atk1_hit_dmg,  cls: 'hit',  fx: row.atk1_hit_fx },
+          { rango: row.atk1_crit_rango, dmg: row.atk1_crit_dmg, cls: 'crit', fx: row.atk1_crit_fx }
+        ]
+      },
+      {
+        nombre: row.atk2_nombre,
+        tipo:   row.atk2_tipo,
+        special: false,
+        filas: [
+          { rango: row.atk2_falla,      dmg: '—',             cls: 'fail', fx: 'Falla' },
+          { rango: row.atk2_hit_rango,  dmg: row.atk2_hit_dmg,  cls: 'hit',  fx: row.atk2_hit_fx },
+          { rango: row.atk2_crit_rango, dmg: row.atk2_crit_dmg, cls: 'crit', fx: row.atk2_crit_fx }
+        ]
+      },
+      {
+        nombre: row.poder_nombre,
+        tipo:   row.poder_tipo,
+        special: true,
+        filas: [
+          { rango: row.poder_falla,      dmg: '—',              cls: 'fail', fx: 'No ocurre nada' },
+          { rango: row.poder_hit_rango,  dmg: row.poder_hit_dmg,  cls: 'hit',  fx: row.poder_hit_fx },
+          { rango: row.poder_crit_rango, dmg: row.poder_crit_dmg, cls: 'crit', fx: row.poder_crit_fx }
+        ]
+      }
+    ],
+    habilidad: {
+      nombre: row.habilidad_nombre,
+      desc:   row.habilidad_desc
+    }
+  };
+}
+
+// ── CARGAR DATOS ──────────────────────────────────────────────────────────
+function setStatus(type, msg) {
+  var el = document.getElementById('status-bar');
+  if (!el) return;
+  el.className = 'status-' + type;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function loadPersonajes() {
+  if (!SHEET_ID) {
+    setStatus('err', '⚠️ Configura el ID del Spreadsheet en la app principal primero.');
+    return;
+  }
+  setStatus('loading', '⏳ Cargando personajes desde Google Sheets...');
+  fetchSheet(SHEET_PERSONAJES).then(function(rows) {
+    if (!rows.length) {
+      setStatus('err', '❌ No se encontraron personajes. Verifica que la hoja "Personajes" exista y esté publicada.');
+      return;
+    }
+    // Agrupar por id, ordenar por nivel
+    rawData = {};
+    charIds = [];
+    rows.forEach(function(row) {
+      var id = row.id;
+      if (!rawData[id]) { rawData[id] = []; charIds.push(id); }
+      rawData[id].push(row);
+    });
+    charIds.forEach(function(id) {
+      rawData[id].sort(function(a, b) { return parseInt(a.nivel) - parseInt(b.nivel); });
+    });
+    // Inicializar estado
+    charIds.forEach(function(id) {
+      var primerNivel = parseFila(rawData[id][0]);
+      estado[id] = {
+        nivelIdx: 0,  // índice en rawData[id]
+        vida: primerNivel.vidaMax,
+        habUsada: false,
+        monedas: 0,
+        items: []
+      };
+    });
+    setStatus('ok', '✅ ' + charIds.length + ' personajes cargados.');
+    renderTabs();
+  }).catch(function(err) {
+    setStatus('err', '❌ ' + err.message);
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderTabs() {
+  var tabsEl = document.getElementById('tabs');
+  var panelsEl = document.getElementById('panels');
+  tabsEl.innerHTML = '';
+  panelsEl.innerHTML = '';
+  charIds.forEach(function(id, i) {
+    var c = parseFila(rawData[id][0]);
+    var tab = document.createElement('button');
+    tab.className = 'char-tab' + (i === 0 ? ' active' : '');
+    tab.id = 'tab_' + id;
+    tab.innerHTML = c.icon + ' ' + c.nombre.split(' ')[0];
+    tab.onclick = function() { switchChar(id); };
+    tabsEl.appendChild(tab);
+    var panel = document.createElement('div');
+    panel.className = 'char-panel' + (i === 0 ? ' active' : '');
+    panel.id = 'panel_' + id;
+    panel.innerHTML = buildPanel(id);
+    panelsEl.appendChild(panel);
+  });
+}
+
+function switchChar(id) {
+  document.querySelectorAll('.char-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.char-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('tab_' + id).classList.add('active');
+  document.getElementById('panel_' + id).classList.add('active');
+}
+
+function buildPanel(id) {
+  var e = estado[id];
+  var c = parseFila(rawData[id][e.nivelIdx]);
+  var totalNiveles = rawData[id].length;
+  var nivelActual = c.nivel;
+  var vidaMaxActual = c.vidaMax;
+
+  // Ajustar vida si supera nuevo máximo
+  if (e.vida > vidaMaxActual) e.vida = vidaMaxActual;
+
+  var vidaCls = e.vida === 0 ? 'dead' : e.vida <= 3 ? 'danger' : '';
+  var vidaTxt = e.vida === 0 ? '💀' : e.vida;
+
+  var heartsMax = Math.min(vidaMaxActual, 20);
+  var hearts = '';
+  for (var i = 0; i < heartsMax; i++) {
+    hearts += '<span class="heart' + (i >= e.vida ? ' empty' : '') + '" id="heart_' + id + '_' + i + '">❤</span>';
+  }
+
+  var ataquesHTML = buildAtaquesHTML(c.ataques);
+
+  var itemsHTML = buildInventarioHTML(id);
+
+  var nivelMaxTxt = e.nivelIdx >= totalNiveles - 1
+    ? '<span style="font-size:10px;color:#aaa;font-style:italic;">Nivel máximo</span>'
+    : '<span class="nivel-bonus">Vida: ' + vidaMaxActual + ' · Próx. nivel ' + (rawData[id][e.nivelIdx + 1] ? rawData[id][e.nivelIdx + 1].nivel : '?') + '</span>';
+
+  return '<div class="char-card">' +
+    '<div class="card-header">' +
+      '<div>' +
+        '<div class="char-name">' + c.icon + ' ' + c.nombre + '</div>' +
+        '<div class="char-sub">' + c.raza + ' · ' + c.clase + '</div>' +
+        '<div class="char-attrs">' +
+          c.atributos.map(function(a) { return '<span class="attr-pill">' + a + '</span>'; }).join('') +
+        '</div>' +
+      '</div>' +
+      '<div class="vida-section">' +
+        '<div class="vida-label">✦ Puntos de Vida ✦</div>' +
+        '<div class="vida-controls">' +
+          '<button class="vida-btn plus" onclick="cambiarVida('' + id + '',' + vidaMaxActual + ',+1)">+</button>' +
+          '<div>' +
+            '<div class="vida-num ' + vidaCls + '" id="vida_' + id + '">' + vidaTxt + '</div>' +
+            '<div class="vida-max-label" id="vida_max_' + id + '">de ' + vidaMaxActual + '</div>' +
+          '</div>' +
+          '<button class="vida-btn minus" onclick="cambiarVida('' + id + '',' + vidaMaxActual + ',-1)">−</button>' +
+        '</div>' +
+        '<div class="vida-hearts" id="hearts_' + id + '">' + hearts + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card-body">' +
+      '<div class="card-section" id="atk_section_' + id + '">' +
+        '<div class="section-title">⚔ Ataques</div>' +
+        ataquesHTML +
+      '</div>' +
+      '<div class="card-section">' +
+        // Nivel
+        '<div class="nivel-row">' +
+          '<span class="nivel-label">⚔ Nivel</span>' +
+          '<button class="nivel-btn" onclick="cambiarNivel('' + id + '',-1)">−</button>' +
+          '<span class="nivel-num" id="nivel_' + id + '">' + nivelActual + '</span>' +
+          '<button class="nivel-btn" onclick="cambiarNivel('' + id + '',+1)">+</button>' +
+          nivelMaxTxt +
+        '</div>' +
+        // Poder
+        '<div class="section-title">✦ Poder Especial</div>' +
+        '<div class="poder-box" style="margin-bottom:16px;">' +
+          '<div class="poder-nombre">' + c.ataques[2].nombre + '</div>' +
+          '<div class="poder-desc">' + c.ataques[2].tipo + '. Lanza el d20 una vez por turno: falla con ' + c.ataques[2].filas[0].rango + '; ' + c.ataques[2].filas[1].dmg + ' con ' + c.ataques[2].filas[1].rango + '; ' + c.ataques[2].filas[2].dmg + ' y aturde con ' + c.ataques[2].filas[2].rango + '.</div>' +
+        '</div>' +
+        // Habilidad
+        '<div class="section-title">⭐ Habilidad Única</div>' +
+        '<div class="hab-box" style="margin-bottom:16px;">' +
+          '<span class="hab-badge">1 vez por tablero</span>' +
+          '<div class="hab-nombre">' + c.habilidad.nombre + '</div>' +
+          '<div class="hab-desc">' + c.habilidad.desc + '</div>' +
+          '<div class="hab-usado">' +
+            '<button class="hab-toggle' + (e.habUsada ? ' usado' : '') + '" id="hab_' + id + '" onclick="toggleHab('' + id + '')"></button>' +
+            '<span class="hab-lbl' + (e.habUsada ? ' usado' : '') + '" id="hab_lbl_' + id + '">' + (e.habUsada ? 'Habilidad usada este tablero' : 'Disponible') + '</span>' +
+          '</div>' +
+        '</div>' +
+        // Inventario
+        '<div class="section-title">🎒 Inventario</div>' +
+        '<div id="inv_wrap_' + id + '">' + itemsHTML + '</div>' +
+        '<div class="inv-add">' +
+          '<input class="inv-input" id="inv_input_' + id + '" placeholder="Nombre del objeto..." onkeydown="if(event.key==='Enter')addItem('' + id + '')">' +
+          '<button class="inv-btn" onclick="addItem('' + id + '')">+ Agregar</button>' +
+        '</div>' +
+        '<div class="monedas-row">' +
+          '<span>🪙</span>' +
+          '<span class="monedas-label">Monedas</span>' +
+          '<button class="moneda-btn minus" onclick="cambiarMonedas('' + id + '',-1)">−</button>' +
+          '<span class="moneda-num" id="mon_' + id + '">' + e.monedas + '</span>' +
+          '<button class="moneda-btn plus" onclick="cambiarMonedas('' + id + '',+1)">+</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function buildAtaquesHTML(ataques) {
+  return ataques.map(function(atk) {
+    var rows = atk.filas.map(function(f) {
+      return '<tr>' +
+        '<td><span class="atk-badge ' + f.cls + '">' + f.rango + '</span></td>' +
+        '<td class="atk-dmg">' + f.dmg + '</td>' +
+        '<td class="atk-fx">' + f.fx + '</td>' +
+        '</tr>';
+    }).join('');
+    return '<div style="margin-bottom:14px;">' +
+      '<div class="atk-name"><span class="atk-badge d20">d20</span> ' + atk.nombre +
+      (atk.special ? ' <span style="font-size:9px;background:#fff3cc;color:#7a5c00;padding:1px 6px;border-radius:4px;border:1px solid #f0d060;letter-spacing:.04em;">ESPECIAL</span>' : '') +
+      '</div>' +
+      '<div style="font-size:11px;color:#888;font-style:italic;margin-bottom:5px;">' + atk.tipo + '</div>' +
+      '<table class="atk-table">' + rows + '</table>' +
+      '</div>';
+  }).join('');
+}
+
+function buildInventarioHTML(id) {
+  var items = estado[id].items;
+  if (!items.length) return '<p class="inv-empty" id="inv_' + id + '">Sin objetos aún.</p>';
+  var lis = items.map(function(item, idx) {
+    var btnCls = item.usado ? 'gastado' : 'disponible';
+    var btnTxt = item.usado ? 'Usado' : 'Disponible';
+    return '<li class="inv-item' + (item.usado ? ' usado' : '') + '">' +
+      '<span class="inv-nombre">🎒 ' + item.nombre + '</span>' +
+      '<button class="inv-usado-btn ' + btnCls + '" onclick="toggleItemUsado('' + id + '',' + idx + ')">' + btnTxt + '</button>' +
+      '<button class="inv-remove" onclick="removeItem('' + id + '',' + idx + ')">✕</button>' +
+      '</li>';
+  }).join('');
+  return '<ul class="inv-list" id="inv_' + id + '">' + lis + '</ul>';
+}
+
+// ── INTERACCIONES ─────────────────────────────────────────────────────────
+function cambiarNivel(id, delta) {
+  var e = estado[id];
+  var niveles = rawData[id];
+  var nuevoIdx = Math.max(0, Math.min(niveles.length - 1, e.nivelIdx + delta));
+  if (nuevoIdx === e.nivelIdx) return;
+  e.nivelIdx = nuevoIdx;
+  var c = parseFila(niveles[nuevoIdx]);
+  var vidaMaxActual = c.vidaMax;
+  if (e.vida > vidaMaxActual) e.vida = vidaMaxActual;
+  // Re-render del panel completo
+  document.getElementById('panel_' + id).innerHTML = buildPanel(id);
+}
+
+function cambiarVida(id, vidaMax, delta) {
+  var e = estado[id];
+  e.vida = Math.max(0, Math.min(vidaMax, e.vida + delta));
+  var el = document.getElementById('vida_' + id);
+  el.textContent = e.vida === 0 ? '💀' : e.vida;
+  el.className = 'vida-num' + (e.vida === 0 ? ' dead' : e.vida <= 3 ? ' danger' : '');
+  var heartsMax = Math.min(vidaMax, 20);
+  for (var i = 0; i < heartsMax; i++) {
+    var h = document.getElementById('heart_' + id + '_' + i);
+    if (h) h.className = 'heart' + (i >= e.vida ? ' empty' : '');
+  }
+}
+
+function toggleHab(id) {
+  var e = estado[id];
+  e.habUsada = !e.habUsada;
+  var btn = document.getElementById('hab_' + id);
+  var lbl = document.getElementById('hab_lbl_' + id);
+  btn.className = 'hab-toggle' + (e.habUsada ? ' usado' : '');
+  lbl.className = 'hab-lbl' + (e.habUsada ? ' usado' : '');
+  lbl.textContent = e.habUsada ? 'Habilidad usada este tablero' : 'Disponible';
+}
+
+function cambiarMonedas(id, delta) {
+  var e = estado[id];
+  e.monedas = Math.max(0, e.monedas + delta);
+  document.getElementById('mon_' + id).textContent = e.monedas;
+}
+
+function refreshInventario(id) {
+  var wrap = document.getElementById('inv_wrap_' + id);
+  if (wrap) wrap.innerHTML = buildInventarioHTML(id);
+}
+
+function addItem(id) {
+  var input = document.getElementById('inv_input_' + id);
+  var nombre = input.value.trim();
+  if (!nombre) return;
+  estado[id].items.push({ nombre: nombre, usado: false });
+  input.value = '';
+  refreshInventario(id);
+}
+
+function removeItem(id, idx) {
+  estado[id].items.splice(idx, 1);
+  refreshInventario(id);
+}
+
+function toggleItemUsado(id, idx) {
+  estado[id].items[idx].usado = !estado[id].items[idx].usado;
+  refreshInventario(id);
+}
+
+// ── CONFIG PANEL ──────────────────────────────────────────────────────────
+function saveConfig() {
+  var id = document.getElementById('cfg-sheet-id').value.trim();
+  if (!id) return;
+  SHEET_ID = id;
+  localStorage.setItem('dnd_sheet_id', id);
+  document.getElementById('cfg-panel').style.display = 'none';
+  loadPersonajes();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  var saved = localStorage.getItem('dnd_sheet_id');
+  if (saved) {
+    SHEET_ID = saved;
+    document.getElementById('cfg-sheet-id').value = saved;
+    loadPersonajes();
+  } else {
+    setStatus('err', '⚠️ Ingresa el ID del Spreadsheet para cargar los personajes.');
+  }
+});
+</script>
+</body>
+</html>
