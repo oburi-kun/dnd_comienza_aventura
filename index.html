@@ -338,13 +338,15 @@ function RA(row,esJefe){
   return h+'</tbody></table>';
 }
 function buildTracker(vidaMax, trackerId) {
+  var onPlus  = 'cambiarVida(\'' + trackerId + '\',' + vidaMax + ',+1)';
+  var onMinus = 'cambiarVida(\'' + trackerId + '\',' + vidaMax + ',-1)';
   return '<div class="vida-tracker" id="' + trackerId + '_wrap">' +
-    '<button class="vida-btn plus" onclick="cambiarVida('' + trackerId + '',' + vidaMax + ',+1)">+</button>' +
+    '<button class="vida-btn plus" onclick="' + onPlus + '">+</button>' +
     '<div class="vida-display">' +
       '<div class="vida-actual" id="' + trackerId + '_val">' + vidaMax + '</div>' +
       '<div class="vida-max">de ' + vidaMax + '</div>' +
     '</div>' +
-    '<button class="vida-btn minus" onclick="cambiarVida('' + trackerId + '',' + vidaMax + ',-1)">−</button>' +
+    '<button class="vida-btn minus" onclick="' + onMinus + '">−</button>' +
   '</div>' +
   '<div class="vida-barra-wrap">' +
     '<div class="vida-barra" id="' + trackerId + '_barra" style="width:100%;background:#4a7c3f;"></div>' +
