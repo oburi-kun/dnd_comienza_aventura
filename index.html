@@ -145,7 +145,10 @@ select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;bor
   <button class="tab" id="t-obj" onclick="ST('obj')">🎒 Objetos</button>
 </div>
 <div class="pnl on" id="p-tur">
-  <div><label>Terreno</label><select id="tur-ter"><option>Pueblo de Neverwinter</option><option>Bosque de Neverwinter</option><option>Gauntlgrym</option><option>Monte Hotenow</option></select></div>
+  <div class="row">
+    <div><label>Terreno</label><select id="tur-ter"><option>Pueblo de Neverwinter</option><option>Bosque de Neverwinter</option><option>Gauntlgrym</option><option>Monte Hotenow</option></select></div>
+    <div><label>Dificultad</label><select id="tur-dif"><option value="">Cualquiera</option><option>Fácil</option><option>Medio</option><option>Difícil</option></select></div>
+  </div>
   <button class="btn" id="bTur" disabled>⚡ Nuevo Turno de Acción</button>
   <div class="turno-card" id="c-tur"></div>
 </div>
@@ -449,8 +452,12 @@ function gTurno(){
   var ter=GV('tur-ter');
   var c=document.getElementById('c-tur');
   c.className='turno-card on';
+  var dif = GV('tur-dif');
   if(Math.random()<0.6){
-    var pool=DB.enemigos.filter(function(e){return e.terreno===ter;});
+    var pool=DB.enemigos.filter(function(e){
+      return e.terreno===ter && (!dif || e.dificultad===dif);
+    });
+    if(!pool.length) pool=DB.enemigos.filter(function(e){return e.terreno===ter;});
     if(!pool.length) pool=DB.enemigos;
     var e=R(pool);
     var bc=e.dificultad==='Difícil'?'bd':e.dificultad==='Medio'?'bw':'bs';
