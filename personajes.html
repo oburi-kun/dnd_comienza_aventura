@@ -773,12 +773,12 @@ function buildPanel(id) {
       '<div class="vida-section">' +
         '<div class="vida-label">✦ Puntos de Vida ✦</div>' +
         '<div class="vida-controls">' +
-          '<button class="vida-btn plus" onclick="cambiarVida('' + id + '',' + vidaMaxActual + ',+1)">+</button>' +
+          '<button class="vida-btn plus" onclick="cambiarVida(&quot;' + id + '&quot;,' + vidaMaxActual + ',+1)">+</button>' +
           '<div>' +
             '<div class="vida-num ' + vidaCls + '" id="vida_' + id + '">' + vidaTxt + '</div>' +
             '<div class="vida-max-label" id="vida_max_' + id + '">de ' + vidaMaxActual + '</div>' +
           '</div>' +
-          '<button class="vida-btn minus" onclick="cambiarVida('' + id + '',' + vidaMaxActual + ',-1)">−</button>' +
+          '<button class="vida-btn minus" onclick="cambiarVida(&quot;' + id + '&quot;,' + vidaMaxActual + ',-1)">−</button>' +
         '</div>' +
         '<div class="vida-hearts" id="hearts_' + id + '">' + hearts + '</div>' +
       '</div>' +
@@ -792,9 +792,9 @@ function buildPanel(id) {
         // Nivel
         '<div class="nivel-row">' +
           '<span class="nivel-label">⚔ Nivel</span>' +
-          '<button class="nivel-btn" onclick="cambiarNivel('' + id + '',-1)">−</button>' +
+          '<button class="nivel-btn" onclick="cambiarNivel(&quot;' + id + '&quot;,-1)">−</button>' +
           '<span class="nivel-num" id="nivel_' + id + '">' + nivelActual + '</span>' +
-          '<button class="nivel-btn" onclick="cambiarNivel('' + id + '',+1)">+</button>' +
+          '<button class="nivel-btn" onclick="cambiarNivel(&quot;' + id + '&quot;,+1)">+</button>' +
           nivelMaxTxt +
         '</div>' +
         // Poder
@@ -810,7 +810,7 @@ function buildPanel(id) {
           '<div class="hab-nombre">' + c.habilidad.nombre + '</div>' +
           '<div class="hab-desc">' + c.habilidad.desc + '</div>' +
           '<div class="hab-usado">' +
-            '<button class="hab-toggle' + (e.habUsada ? ' usado' : '') + '" id="hab_' + id + '" onclick="toggleHab('' + id + '')"></button>' +
+            '<button class="hab-toggle' + (e.habUsada ? ' usado' : '') + '" id="hab_' + id + '" onclick="toggleHab(&quot;' + id + '&quot;)"></button>' +
             '<span class="hab-lbl' + (e.habUsada ? ' usado' : '') + '" id="hab_lbl_' + id + '">' + (e.habUsada ? 'Habilidad usada este tablero' : 'Disponible') + '</span>' +
           '</div>' +
         '</div>' +
@@ -818,15 +818,15 @@ function buildPanel(id) {
         '<div class="section-title">🎒 Inventario</div>' +
         '<div id="inv_wrap_' + id + '">' + itemsHTML + '</div>' +
         '<div class="inv-add">' +
-          '<input class="inv-input" id="inv_input_' + id + '" placeholder="Nombre del objeto..." onkeydown="if(event.key==='Enter')addItem('' + id + '')">' +
-          '<button class="inv-btn" onclick="addItem('' + id + '')">+ Agregar</button>' +
+          '<input class="inv-input" id="inv_input_' + id + '" placeholder="Nombre del objeto..." onkeydown="if(event.key==='Enter')addItem(&quot;' + id + '&quot;)">' +
+          '<button class="inv-btn" onclick="addItem(&quot;' + id + '&quot;)">+ Agregar</button>' +
         '</div>' +
         '<div class="monedas-row">' +
           '<span>🪙</span>' +
           '<span class="monedas-label">Monedas</span>' +
-          '<button class="moneda-btn minus" onclick="cambiarMonedas('' + id + '',-1)">−</button>' +
+          '<button class="moneda-btn minus" onclick="cambiarMonedas(&quot;' + id + '&quot;,-1)">−</button>' +
           '<span class="moneda-num" id="mon_' + id + '">' + e.monedas + '</span>' +
-          '<button class="moneda-btn plus" onclick="cambiarMonedas('' + id + '',+1)">+</button>' +
+          '<button class="moneda-btn plus" onclick="cambiarMonedas(&quot;' + id + '&quot;,+1)">+</button>' +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -860,8 +860,8 @@ function buildInventarioHTML(id) {
     var btnTxt = item.usado ? 'Usado' : 'Disponible';
     return '<li class="inv-item' + (item.usado ? ' usado' : '') + '">' +
       '<span class="inv-nombre">🎒 ' + item.nombre + '</span>' +
-      '<button class="inv-usado-btn ' + btnCls + '" onclick="toggleItemUsado('' + id + '',' + idx + ')">' + btnTxt + '</button>' +
-      '<button class="inv-remove" onclick="removeItem('' + id + '',' + idx + ')">✕</button>' +
+      '<button class="inv-usado-btn ' + btnCls + '" onclick="toggleItemUsado(&quot;' + id + '&quot;,' + idx + ')">' + btnTxt + '</button>' +
+      '<button class="inv-remove" onclick="removeItem(&quot;' + id + '&quot;,' + idx + ')">✕</button>' +
       '</li>';
   }).join('');
   return '<ul class="inv-list" id="inv_' + id + '">' + lis + '</ul>';
