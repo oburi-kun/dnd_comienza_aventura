@@ -307,26 +307,7 @@ body {
   letter-spacing: .04em;
 }
 
-/* ── PODER ESPECIAL ── */
-.poder-box {
-  background: linear-gradient(135deg, rgba(45,90,39,.08), rgba(45,90,39,.03));
-  border: 1.5px solid rgba(45,90,39,.3);
-  border-radius: 8px;
-  padding: 12px 14px;
-}
-.poder-nombre {
-  font-family: 'Cinzel', serif;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--green);
-  margin-bottom: 4px;
-}
-.poder-desc {
-  font-size: 13px;
-  line-height: 1.6;
-  color: #333;
-  font-style: italic;
-}
+
 
 /* ── HABILIDAD ÚNICA ── */
 .hab-box {
@@ -796,12 +777,6 @@ function buildPanel(id) {
           '<span class="nivel-num" id="nivel_' + id + '">' + nivelActual + '</span>' +
           '<button class="nivel-btn" onclick="cambiarNivel(&quot;' + id + '&quot;,+1)">+</button>' +
           nivelMaxTxt +
-        '</div>' +
-        // Poder
-        '<div class="section-title">✦ Poder Especial</div>' +
-        '<div class="poder-box" style="margin-bottom:16px;">' +
-          '<div class="poder-nombre">' + c.ataques[2].nombre + '</div>' +
-          '<div class="poder-desc">' + c.ataques[2].tipo + '. Lanza el d20 una vez por turno: falla con ' + c.ataques[2].filas[0].rango + '; ' + c.ataques[2].filas[1].dmg + ' con ' + c.ataques[2].filas[1].rango + '; ' + c.ataques[2].filas[2].dmg + ' y aturde con ' + c.ataques[2].filas[2].rango + '.</div>' +
         '</div>' +
         // Habilidad
         '<div class="section-title">⭐ Habilidad Única</div>' +
