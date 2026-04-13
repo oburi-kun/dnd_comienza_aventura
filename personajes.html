@@ -841,8 +841,8 @@ function buildInventarioHTML(id) {
         '<span class="inv-nombre">🎒 ' + item.nombre + '</span>' +
         descHTML +
       '</div>' +
-      '<button class="inv-usado-btn ' + btnCls + '" onclick="toggleItemUsado('' + id + '',' + idx + ')">' + btnTxt + '</button>' +
-      '<button class="inv-remove" onclick="removeItem('' + id + '',' + idx + ')">✕</button>' +
+      '<button class="inv-usado-btn ' + btnCls + '" onclick="toggleItemUsado(&quot;' + id + '&quot;,' + idx + ')">' + btnTxt + '</button>' +
+      '<button class="inv-remove" onclick="removeItem(&quot;' + id + '&quot;,' + idx + ')">✕</button>' +
       '</li>';
   }).join('');
   return '<ul class="inv-list" id="inv_' + id + '">' + lis + '</ul>';
