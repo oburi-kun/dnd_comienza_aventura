@@ -513,20 +513,7 @@ body {
   <p>D&amp;D: Comienza la Aventura</p>
 </div>
 
-<!-- Config panel -->
-<div id="cfg-panel" style="max-width:600px;margin:0 auto 1rem;padding:0 1rem;">
-  <div style="background:rgba(0,0,0,.3);border:1.5px solid var(--gold-dk);border-radius:10px;padding:1rem;">
-    <div style="font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;">⚙ Conectar Google Spreadsheet</div>
-    <div style="display:flex;gap:8px;">
-      <input id="cfg-sheet-id" type="text" placeholder="ID del Spreadsheet..."
-        style="flex:1;padding:7px 10px;font-size:13px;border:1.5px solid var(--gold-dk);border-radius:6px;background:rgba(255,255,255,.1);color:var(--gold-lt);font-family:monospace;">
-      <button onclick="saveConfig()"
-        style="padding:7px 14px;font-family:'Cinzel',serif;font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold-lt));color:var(--ink);border:none;border-radius:6px;cursor:pointer;">
-        Cargar
-      </button>
-    </div>
-  </div>
-</div>
+
 
 <!-- Status -->
 <div id="status-bar" style="display:none;max-width:600px;margin:0 auto .75rem;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;"></div>
@@ -543,7 +530,7 @@ body {
 <script>
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────
 // Usa el mismo Sheet ID que la app principal
-var SHEET_ID = localStorage.getItem('dnd_sheet_id') || '1krkRaMM7YDCfdvh20f-xd2oTOtEvR3NlRKhAUPlS-7A';
+var SHEET_ID = '1krkRaMM7YDCfdvh20f-xd2oTOtEvR3NlRKhAUPlS-7A';
 var SHEET_PERSONAJES = 'Personajes';
 
 // ── ESTADO ────────────────────────────────────────────────────────────────
@@ -647,10 +634,7 @@ function setStatus(type, msg) {
 }
 
 function loadPersonajes() {
-  if (!SHEET_ID) {
-    setStatus('err', '⚠️ Configura el ID del Spreadsheet en la app principal primero.');
-    return;
-  }
+
   setStatus('loading', '⏳ Cargando personajes desde Google Sheets...');
   fetchSheet(SHEET_PERSONAJES).then(function(rows) {
     if (!rows.length) {
@@ -909,26 +893,11 @@ function toggleItemUsado(id, idx) {
   refreshInventario(id);
 }
 
-// ── CONFIG PANEL ──────────────────────────────────────────────────────────
-function saveConfig() {
-  var id = document.getElementById('cfg-sheet-id').value.trim();
-  if (!id) return;
-  SHEET_ID = id;
-  localStorage.setItem('dnd_sheet_id', id);
-  document.getElementById('cfg-panel').style.display = 'none';
-  loadPersonajes();
-}
+
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
-  var saved = localStorage.getItem('dnd_sheet_id');
-  if (saved) {
-    SHEET_ID = saved;
-    document.getElementById('cfg-sheet-id').value = saved;
-    loadPersonajes();
-  } else {
-    setStatus('err', '⚠️ Ingresa el ID del Spreadsheet para cargar los personajes.');
-  }
+  loadPersonajes();
 });
 </script>
 </body>
