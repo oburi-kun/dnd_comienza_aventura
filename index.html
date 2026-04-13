@@ -15,14 +15,7 @@ body{font-family:sans-serif;background:#f0f5ee;}
 #status-bar.loading{display:block;background:#fff8e0;color:#7a5c00;border:1px solid #f0d060;}
 #status-bar.ok{display:block;background:#f0f7ee;color:#2d5a27;border:1px solid #7aab6a;}
 #status-bar.err{display:block;background:#fff3f3;color:#900;border:1px solid #f5c0c0;}
-.config-panel{background:#e8f0e5;border:1.5px solid #7aab6a;border-radius:10px;padding:1rem;margin-bottom:1rem;}
-.config-panel h3{font-size:13px;font-weight:700;color:#2d5a27;margin-bottom:8px;}
-.config-panel input{width:100%;padding:7px 10px;font-size:13px;border:1.5px solid #7aab6a;border-radius:6px;background:#f5faf3;color:#2d4a28;font-family:monospace;}
-.config-btns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
-.btn-cfg{padding:7px 16px;font-size:12px;font-weight:700;border:none;border-radius:6px;cursor:pointer;}
-.btn-cfg.primary{background:linear-gradient(135deg,#c9a227,#e8c040);color:#3d2800;}
-.btn-cfg.secondary{background:#d4e8ce;color:#2d5a27;border:1px solid #7aab6a;}
-.config-hint{font-size:11px;color:#5a7a55;margin-top:8px;line-height:1.6;}
+
 .tabs{display:flex;border-bottom:2px solid #4a7c3f;margin-bottom:1.25rem;overflow-x:auto;background:#e8f0e5;border-radius:8px 8px 0 0;}
 .tab{padding:9px 13px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#4a6645;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;font-weight:500;}
 .tab.on{color:#2d5a27;border-bottom:3px solid #2d5a27;font-weight:700;background:#d4e8ce;}
@@ -124,18 +117,7 @@ select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;bor
   <p>Un generador de contenido diseñado por Pablo Lopez — v2.0</p>
 </div>
 <div id="status-bar"></div>
-<div class="config-panel" id="cfg">
-  <h3>⚙️ Conectar Google Spreadsheet</h3>
-  <input type="text" id="sheet-id" placeholder="Pega el ID de tu Google Spreadsheet aquí">
-  <div class="config-btns">
-    <button class="btn-cfg primary" onclick="saveAndLoad()">💾 Guardar y cargar datos</button>
-    <button class="btn-cfg secondary" onclick="document.getElementById('cfg').style.display='none'">Ocultar</button>
-  </div>
-  <p class="config-hint">
-    El ID está en la URL: docs.google.com/spreadsheets/d/<strong>ESTE_ES_EL_ID</strong>/edit<br>
-    ⚠️ La hoja debe estar publicada: <strong>Archivo → Publicar en la web → Publicar</strong>
-  </p>
-</div>
+
 <div class="tabs">
   <button class="tab on" id="t-tur" onclick="ST('tur')">Turno de Acción</button>
   <button class="tab" id="t-ene" onclick="ST('ene')">Enemigos</button>
@@ -191,7 +173,7 @@ select{width:100%;padding:8px 10px;font-size:14px;border:1.5px solid #7aab6a;bor
 </div>
 
 <script>
-var SHEET_ID = localStorage.getItem('dnd_sheet_id') || '';
+var SHEET_ID = '1krkRaMM7YDCfdvh20f-xd2oTOtEvR3NlRKhAUPlS-7A';
 var DB = {enemigos:[],jefes:[],eventos:[],objetos:[]};
 var hist = [];
 var OBJETOS = []; // cargado desde hoja "Objetos" en Google Sheets
@@ -259,16 +241,10 @@ function fetchCSV(sheetName) {
 // ── PLACEHOLDER (ya no se usa, fetchCSV usa JSON) ─────────────────────────
 function parseCSV(text) { return []; }
 
-function saveAndLoad(){
-  var id = document.getElementById('sheet-id').value.trim();
-  if(!id){setStatus('err','⚠️ Ingresa el ID del Spreadsheet');return;}
-  SHEET_ID = id;
-  localStorage.setItem('dnd_sheet_id', id);
-  loadAll();
-}
+
 
 function loadAll(){
-  if(!SHEET_ID){setStatus('err','⚠️ Configura el ID del Spreadsheet');return;}
+
   setStatus('loading','⏳ Cargando datos desde Google Sheets...');
   enableBtns(false);
 
@@ -545,14 +521,7 @@ document.getElementById('bJef').addEventListener('click',gJef);
 document.getElementById('bEve').addEventListener('click',gEve);
 
 window.addEventListener('load',function(){
-  var saved=localStorage.getItem('dnd_sheet_id');
-  if(saved){
-    document.getElementById('sheet-id').value=saved;
-    SHEET_ID=saved;
-    loadAll();
-  }else{
-    setStatus('err','⚠️ Ingresa el ID de tu Google Spreadsheet para comenzar');
-  }
+  loadAll();
 });
 </script>
 </body>
