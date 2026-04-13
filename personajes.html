@@ -415,7 +415,7 @@ body {
   gap: 6px;
   margin-top: 8px;
 }
-.inv-input {
+.inv-select {
   flex: 1;
   padding: 6px 10px;
   font-size: 13px;
@@ -425,8 +425,10 @@ body {
   background: rgba(255,255,255,.7);
   color: var(--ink);
 }
-.inv-input:focus { outline: none; border-color: var(--gold); }
-.inv-input::placeholder { color: #aaa; font-style: italic; }
+.inv-select:focus { outline: none; border-color: var(--gold); }
+.inv-nombre { flex: 1; color: var(--ink); font-weight: 600; }
+.inv-desc { font-size: 11px; color: #777; font-style: italic; margin-top: 1px; line-height: 1.4; }
+.inv-nombre-wrap { flex: 1; display: flex; flex-direction: column; }
 .inv-btn {
   padding: 6px 12px;
   font-family: 'Cinzel', serif;
@@ -532,6 +534,8 @@ body {
 // Usa el mismo Sheet ID que la app principal
 var SHEET_ID = '1krkRaMM7YDCfdvh20f-xd2oTOtEvR3NlRKhAUPlS-7A';
 var SHEET_PERSONAJES = 'Personajes';
+var SHEET_OBJETOS = 'Objetos';
+var catalogoObjetos = []; // [{nombre, descripcion}]
 
 // ── ESTADO ────────────────────────────────────────────────────────────────
 // rawData[id] = array de filas ordenadas por nivel: [{nivel:1,...},{nivel:2,...}]
@@ -636,7 +640,14 @@ function setStatus(type, msg) {
 function loadPersonajes() {
 
   setStatus('loading', '⏳ Cargando personajes desde Google Sheets...');
-  fetchSheet(SHEET_PERSONAJES).then(function(rows) {
+  Promise.all([fetchSheet(SHEET_PERSONAJES), fetchSheet(SHEET_OBJETOS)])
+  .then(function(results) {
+    var rows = results[0];
+    var objRows = results[1];
+    // Cargar catálogo de objetos
+    catalogoObjetos = objRows
+      .filter(function(o) { return o.nombre && o.nombre.trim(); })
+      .map(function(o) { return { nombre: o.nombre.trim(), descripcion: o.descripcion ? o.descripcion.trim() : '' }; });
     if (!rows.length) {
       setStatus('err', '❌ No se encontraron personajes. Verifica que la hoja "Personajes" exista y esté publicada.');
       return;
@@ -777,7 +788,12 @@ function buildPanel(id) {
         '<div class="section-title">🎒 Inventario</div>' +
         '<div id="inv_wrap_' + id + '">' + itemsHTML + '</div>' +
         '<div class="inv-add">' +
-          '<input class="inv-input" id="inv_input_' + id + '" placeholder="Nombre del objeto..." onkeydown="if(event.key===&apos;Enter&apos;)addItem(&quot;' + id + '&quot;)">' +
+          '<select class="inv-select" id="inv_input_' + id + '">' +
+            '<option value="">— Seleccionar objeto —</option>' +
+            catalogoObjetos.map(function(o) {
+              return '<option value="' + o.nombre + '" data-desc="' + o.descripcion.replace(/"/g,"&quot;") + '">' + o.nombre + '</option>';
+            }).join('') +
+          '</select>' +
           '<button class="inv-btn" onclick="addItem(&quot;' + id + '&quot;)">+ Agregar</button>' +
         '</div>' +
         '<div class="monedas-row">' +
@@ -817,56 +833,19 @@ function buildInventarioHTML(id) {
   var lis = items.map(function(item, idx) {
     var btnCls = item.usado ? 'gastado' : 'disponible';
     var btnTxt = item.usado ? 'Usado' : 'Disponible';
+    var descHTML = item.descripcion
+      ? '<span class="inv-desc">' + item.descripcion + '</span>'
+      : '';
     return '<li class="inv-item' + (item.usado ? ' usado' : '') + '">' +
-      '<span class="inv-nombre">🎒 ' + item.nombre + '</span>' +
-      '<button class="inv-usado-btn ' + btnCls + '" onclick="toggleItemUsado(&quot;' + id + '&quot;,' + idx + ')">' + btnTxt + '</button>' +
-      '<button class="inv-remove" onclick="removeItem(&quot;' + id + '&quot;,' + idx + ')">✕</button>' +
+      '<div class="inv-nombre-wrap">' +
+        '<span class="inv-nombre">🎒 ' + item.nombre + '</span>' +
+        descHTML +
+      '</div>' +
+      '<button class="inv-usado-btn ' + btnCls + '" onclick="toggleItemUsado('' + id + '',' + idx + ')">' + btnTxt + '</button>' +
+      '<button class="inv-remove" onclick="removeItem('' + id + '',' + idx + ')">✕</button>' +
       '</li>';
   }).join('');
   return '<ul class="inv-list" id="inv_' + id + '">' + lis + '</ul>';
-}
-
-// ── INTERACCIONES ─────────────────────────────────────────────────────────
-function cambiarNivel(id, delta) {
-  var e = estado[id];
-  var niveles = rawData[id];
-  var nuevoIdx = Math.max(0, Math.min(niveles.length - 1, e.nivelIdx + delta));
-  if (nuevoIdx === e.nivelIdx) return;
-  e.nivelIdx = nuevoIdx;
-  var c = parseFila(niveles[nuevoIdx]);
-  var vidaMaxActual = c.vidaMax;
-  if (e.vida > vidaMaxActual) e.vida = vidaMaxActual;
-  // Re-render del panel completo
-  document.getElementById('panel_' + id).innerHTML = buildPanel(id);
-}
-
-function cambiarVida(id, vidaMax, delta) {
-  var e = estado[id];
-  e.vida = Math.max(0, Math.min(vidaMax, e.vida + delta));
-  var el = document.getElementById('vida_' + id);
-  el.textContent = e.vida === 0 ? '💀' : e.vida;
-  el.className = 'vida-num' + (e.vida === 0 ? ' dead' : e.vida <= 3 ? ' danger' : '');
-  var heartsMax = Math.min(vidaMax, 20);
-  for (var i = 0; i < heartsMax; i++) {
-    var h = document.getElementById('heart_' + id + '_' + i);
-    if (h) h.className = 'heart' + (i >= e.vida ? ' empty' : '');
-  }
-}
-
-function toggleHab(id) {
-  var e = estado[id];
-  e.habUsada = !e.habUsada;
-  var btn = document.getElementById('hab_' + id);
-  var lbl = document.getElementById('hab_lbl_' + id);
-  btn.className = 'hab-toggle' + (e.habUsada ? ' usado' : '');
-  lbl.className = 'hab-lbl' + (e.habUsada ? ' usado' : '');
-  lbl.textContent = e.habUsada ? 'Habilidad usada este tablero' : 'Disponible';
-}
-
-function cambiarMonedas(id, delta) {
-  var e = estado[id];
-  e.monedas = Math.max(0, e.monedas + delta);
-  document.getElementById('mon_' + id).textContent = e.monedas;
 }
 
 function refreshInventario(id) {
@@ -875,11 +854,13 @@ function refreshInventario(id) {
 }
 
 function addItem(id) {
-  var input = document.getElementById('inv_input_' + id);
-  var nombre = input.value.trim();
+  var sel = document.getElementById('inv_input_' + id);
+  var nombre = sel.value;
   if (!nombre) return;
-  estado[id].items.push({ nombre: nombre, usado: false });
-  input.value = '';
+  var opt = sel.options[sel.selectedIndex];
+  var descripcion = opt ? (opt.getAttribute('data-desc') || '') : '';
+  estado[id].items.push({ nombre: nombre, descripcion: descripcion, usado: false });
+  sel.selectedIndex = 0;
   refreshInventario(id);
 }
 
