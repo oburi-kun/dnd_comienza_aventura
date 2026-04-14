@@ -299,13 +299,16 @@ function refreshTerrenos(){
 }
 
 // ── RENDER ─────────────────────────────────────────────────────────────────
+function imgSrc(url){
+  return /^https?:\/\//i.test(url) ? url : 'img/' + url;
+}
 function cardImg(url,alt){
   if(!url) return '';
-  return '<div class="card-img-wrap"><img class="card-img" src="'+url+'" alt="'+alt+'" onerror="this.parentElement.style.display=\'none\'"></div>';
+  return '<div class="card-img-wrap"><img class="card-img" src="'+imgSrc(url)+'" alt="'+alt+'" onerror="this.parentElement.style.display=\'none\'"></div>';
 }
 function evImg(url,alt){
   if(!url) return '';
-  return '<div class="ev-img-wrap"><img class="ev-img" src="'+url+'" alt="'+alt+'" onerror="this.parentElement.style.display=\'none\'"><div class="ev-img-overlay"></div></div>';
+  return '<div class="ev-img-wrap"><img class="ev-img" src="'+imgSrc(url)+'" alt="'+alt+'" onerror="this.parentElement.style.display=\'none\'"><div class="ev-img-overlay"></div></div>';
 }
 function RA(row,esJefe){
   var atks=[];
